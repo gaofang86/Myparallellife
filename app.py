@@ -396,11 +396,49 @@ def _generate_full_one(key, age, years):
 
 
 def _start_background_generation(enriched_situation, age, years):
+    from orchestrator import LifeOrchestrator
     agents = {k: LifeAgent(k, enriched_situation, age) for k in PERSONA_KEYS}
     _persona_agent.update(agents)
-    for k in PERSONA_KEYS:
-        t = threading.Thread(target=_generate_full_one, args=(k, age, years), daemon=True)
-        t.start()
+
+    orchestrator = LifeOrchestrator(enriched_situation, age, years)
+
+    def _orchestrated_run():
+        # Phase 1: orchestrator coordinates all 4 outlines in parallel
+        outlines = orchestrator.orchestrate_outlines(agents)
+        for k, outline in outlines.items():
+            _outline_data[k] = outline
+            _oneliner_data[k] = _get_one_liner(k, outline)
+            _oneliner_done[k].set()
+            _outline_done[k].set()
+
+        # Phase 2: generate stories (each in its own thread for streaming support)
+        def _gen_story(k):
+            try:
+                story = agents[k].generate_story_from_outline(years, _outline_data[k])
+                _persona_story[k] = story
+                _state.setdefault("stories", {})[PERSONAS[k]["label"]] = story
+            except Exception as e:
+                _persona_story[k] = f"[Error: {e}]"
+                _score_done[k].set()
+
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            list(ex.map(_gen_story, PERSONA_KEYS))
+
+        # Phase 3: orchestrator coordinates all 4 scores in parallel
+        scores = orchestrator.orchestrate_scores(agents, _persona_story)
+        for k, s in scores.items():
+            _score_data[k] = s
+            try:
+                wandb.log({f"score_{k}_{m}": v for m, v in s.items()})
+            except Exception:
+                pass
+            _regret_data[k] = _get_regret_quote(PERSONAS[k]["label"], _persona_story.get(k, ""))
+            _score_done[k].set()
+
+        if all(_score_done[k].is_set() for k in PERSONA_KEYS):
+            _all_scored.set()
+
+    threading.Thread(target=_orchestrated_run, daemon=True).start()
 
 
 # ── Stage handlers ────────────────────────────────────────────────────────────

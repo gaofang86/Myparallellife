@@ -54,7 +54,7 @@ class LifeAgent:
         response = client.messages.create(
             model=MODEL,
             max_tokens=max_tokens,
-            system=self.system_prompt,
+            system=[{"type": "text", "text": self.system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=self.conversation_history,
         )
         reply = response.content[0].text
@@ -68,7 +68,7 @@ class LifeAgent:
         with client.messages.stream(
             model=MODEL,
             max_tokens=max_tokens,
-            system=self.system_prompt,
+            system=[{"type": "text", "text": self.system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=self.conversation_history,
         ) as stream:
             for token in stream.text_stream:
@@ -94,7 +94,7 @@ class LifeAgent:
         response = client.messages.create(
             model=MODEL,
             max_tokens=400,
-            system=self.system_prompt,
+            system=[{"type": "text", "text": self.system_prompt, "cache_control": {"type": "ephemeral"}}],
             messages=[{"role": "user", "content": prompt}],
         )
         raw = response.content[0].text.strip().replace("```json", "").replace("```", "").strip()
