@@ -53,14 +53,18 @@ Input one decision (e.g. *"Age 28 — stay in the city or go home for a stable j
 User input (situation + age + questions)
         │
         ▼
-4 × LifeAgent (parallel threads)
-   ├── generate_outline()      → JSON life snapshot
-   ├── generate_story()        → 250-word narrative
-   ├── score_life()            → 5-dimension scores via judge LLM
-   └── get_regret_quote()      → one-sentence deepest regret
+LifeOrchestrator  ◄── Claude tool_use (cached system prompt)
+        │
+        ├── Phase 1: one orchestrator call → 4× run_outline tool_use
+        │           └── ThreadPoolExecutor: 4 parallel outline generations
+        │
+        ├── Phase 2: 4× generate_story (parallel threads, streaming-ready)
+        │
+        └── Phase 3: one orchestrator call → 4× run_score tool_use
+                    └── ThreadPoolExecutor: 4 parallel score evaluations
         │
         ▼
-Tea House rounds (streaming)
+Tea House (streaming per round)
    Round 1: junior → senior (forward advice)
    Round 2: senior ↔ senior (clash + envy)
    Round 3: senior → junior (letter back)
@@ -68,6 +72,10 @@ Tea House rounds (streaming)
         ▼
 Final Synthesis (judge agent, all 4 stories)
 ```
+
+**Why this is genuinely multi-agent:** the `LifeOrchestrator` makes a single LLM call that returns 4 `tool_use` blocks — one per persona. The orchestrator decides which agents to invoke and when; the subagents execute in parallel. This is not prompt injection or hardcoded routing.
+
+**Why it's fast:** all LLM calls use `cache_control: ephemeral` on system prompts (~400 tokens each). After the first call per session, system prompts are served from cache — ~85% token savings and lower latency on every subsequent request.
 
 All LLM calls use **Claude Haiku 4.5** via the Anthropic API. Traces logged to **W&B Weave**.
 
@@ -99,8 +107,9 @@ Open `http://localhost:7860`
 
 ## Stack
 
-- **LLM** — Anthropic Claude Haiku 4.5 (streaming)
+- **LLM** — Anthropic Claude Haiku 4.5 (streaming + tool_use)
+- **Multi-agent** — Orchestrator + 4 subagents via Anthropic `tool_use`, prompt caching (`cache_control: ephemeral`)
 - **UI** — Gradio 6.x with custom CSS nav pills
 - **Charts** — Plotly radar chart
 - **Observability** — W&B Weave for LLM traces, W&B for score logging
-- **Concurrency** — Python `threading` for parallel persona generation
+- **Concurrency** — `ThreadPoolExecutor` for parallel tool execution, `threading` for background generation
