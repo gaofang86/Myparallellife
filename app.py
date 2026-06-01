@@ -13,6 +13,7 @@ load_dotenv(override=True)
 from life_agent import LifeAgent
 from personas import PERSONAS
 from judge import DIMENSIONS, score_life, final_synthesis
+from evaluator import evaluate_stories
 import wandb, weave
 import os, anthropic
 
@@ -53,6 +54,19 @@ _regret_data   = {}
 _all_scored    = threading.Event()
 _oneliner_data = {}
 _oneliner_done = {k: threading.Event() for k in PERSONA_KEYS}
+_trace_events  = []   # list of dicts: {name, persona, phase, start, end, duration}
+_trace_t0      = 0.0  # session start time
+_eval_data     = {}
+_eval_done     = threading.Event()
+
+
+def _record(name: str, persona: str, phase: str, start: float, end: float):
+    _trace_events.append({
+        "name": name, "persona": persona, "phase": phase,
+        "start": round(start - _trace_t0, 3),
+        "end": round(end - _trace_t0, 3),
+        "duration": round(end - start, 3),
+    })
 
 
 # ── LLM helper ───────────────────────────────────────────────────────────────
@@ -403,8 +417,14 @@ def _start_background_generation(enriched_situation, age, years):
     orchestrator = LifeOrchestrator(enriched_situation, age, years)
 
     def _orchestrated_run():
+        global _trace_t0
+        _trace_t0 = time.time()
+        _trace_events.clear()
+
         # Phase 1: orchestrator coordinates all 4 outlines in parallel
+        t0 = time.time()
         outlines = orchestrator.orchestrate_outlines(agents)
+        _record("orchestrate_outlines", "orchestrator", "outline", t0, time.time())
         for k, outline in outlines.items():
             _outline_data[k] = outline
             _oneliner_data[k] = _get_one_liner(k, outline)
@@ -413,6 +433,7 @@ def _start_background_generation(enriched_situation, age, years):
 
         # Phase 2: generate stories (each in its own thread for streaming support)
         def _gen_story(k):
+            t0 = time.time()
             try:
                 story = agents[k].generate_story_from_outline(years, _outline_data[k])
                 _persona_story[k] = story
@@ -420,12 +441,15 @@ def _start_background_generation(enriched_situation, age, years):
             except Exception as e:
                 _persona_story[k] = f"[Error: {e}]"
                 _score_done[k].set()
+            _record("generate_story", k, "story", t0, time.time())
 
         with ThreadPoolExecutor(max_workers=4) as ex:
             list(ex.map(_gen_story, PERSONA_KEYS))
 
         # Phase 3: orchestrator coordinates all 4 scores in parallel
+        t0 = time.time()
         scores = orchestrator.orchestrate_scores(agents, _persona_story)
+        _record("orchestrate_scores", "orchestrator", "score", t0, time.time())
         for k, s in scores.items():
             _score_data[k] = s
             try:
@@ -437,6 +461,19 @@ def _start_background_generation(enriched_situation, age, years):
 
         if all(_score_done[k].is_set() for k in PERSONA_KEYS):
             _all_scored.set()
+
+        def _run_eval():
+            try:
+                results = evaluate_stories(
+                    _persona_story, _outline_data, PERSONAS, _state.get("situation", "")
+                )
+                _eval_data.update(results)
+            except Exception:
+                pass
+            finally:
+                _eval_done.set()
+
+        threading.Thread(target=_run_eval, daemon=True).start()
 
     threading.Thread(target=_orchestrated_run, daemon=True).start()
 
@@ -463,6 +500,8 @@ def reveal_and_start(situation, age, years_val, ans1, ans2, ans3, ans4):
     _oneliner_data.clear()
     for e in _oneliner_done.values():
         e.clear()
+    _eval_data.clear()
+    _eval_done.clear()
 
     age, years = int(age), int(years_val)
     _state.update({"age": age, "years": years, "situation": situation})
@@ -604,10 +643,17 @@ def _tea_stream_card(html_so_far, key, listener, age, message, streaming, direct
     return html_so_far + card
 
 
+@weave.op()
+def _log_tea_round(round_num: int, situation: str, age: int, years: int):
+    """Weave trace entry point for Tea House rounds."""
+    return {"round": round_num, "situation": situation, "age": age, "years": years}
+
+
 def run_tea_round(round_num):
     if not _persona_agent:
         yield "Start a session first.", ""
         return
+    _log_tea_round(round_num, _state.get("situation", ""), _state.get("age", 0), _state.get("years", 0))
 
     yield "⏳ Ensuring all stories ready…", ""
     _ensure_all_stories()
@@ -737,6 +783,157 @@ Every sentence must earn its place."""
         yield f"Error: {e}", str(e)
 
 
+# ── Trace visualization ───────────────────────────────────────────────────────
+
+def build_trace_chart():
+    if not _trace_events:
+        return go.Figure().update_layout(
+            title="No trace data yet — run a session first.",
+            height=300, paper_bgcolor="white"
+        )
+
+    fig = go.Figure()
+
+    events = sorted(_trace_events, key=lambda e: e["start"])
+
+    y_labels = []
+    for e in events:
+        if e["persona"] == "orchestrator":
+            label = f"[{e['phase'].upper()}] orchestrator"
+        else:
+            label = f"[{e['phase'].upper()}] {PERSONAS[e['persona']]['label']}"
+        y_labels.append(label)
+
+    colors = []
+    for e in events:
+        if e["phase"] == "outline":
+            colors.append("#818cf8")
+        elif e["phase"] == "score":
+            colors.append("#22c55e")
+        else:
+            colors.append(PERSONA_COLORS.get(e["persona"], "#888"))
+
+    for i, (e, label, color) in enumerate(zip(events, y_labels, colors)):
+        fig.add_trace(go.Bar(
+            x=[e["duration"]],
+            y=[label],
+            base=[e["start"]],
+            orientation="h",
+            marker_color=color,
+            text=f'{e["duration"]}s',
+            textposition="inside",
+            insidetextanchor="middle",
+            showlegend=False,
+            hovertemplate=f"<b>{label}</b><br>Start: {e['start']}s<br>Duration: {e['duration']}s<extra></extra>",
+        ))
+
+    max_end = max(e["end"] for e in events)
+    fig.update_layout(
+        barmode="overlay",
+        xaxis=dict(title="Seconds from session start", range=[0, max_end * 1.05]),
+        yaxis=dict(autorange="reversed"),
+        height=max(300, len(events) * 48 + 80),
+        paper_bgcolor="white",
+        plot_bgcolor="#fafafa",
+        margin=dict(l=20, r=20, t=40, b=40),
+        title=dict(text="LLM Call Timeline", font=dict(size=14)),
+    )
+    return fig
+
+
+def build_trace_table():
+    if not _trace_events:
+        return "<p style='color:#aaa;'>No data.</p>"
+    rows = "".join(
+        f'<tr style="border-bottom:1px solid #f0f0f0;">'
+        f'<td style="padding:6px 12px;font-size:12px;color:#555;">{e["phase"].upper()}</td>'
+        f'<td style="padding:6px 12px;font-size:12px;font-weight:600;">{PERSONAS[e["persona"]]["label"] if e["persona"] in PERSONAS else e["persona"]}</td>'
+        f'<td style="padding:6px 12px;font-size:12px;">{e["name"]}</td>'
+        f'<td style="padding:6px 12px;font-size:12px;color:#4A90D9;font-weight:700;">{e["duration"]}s</td>'
+        f'<td style="padding:6px 12px;font-size:12px;color:#aaa;">{e["start"]}s → {e["end"]}s</td>'
+        f'</tr>'
+        for e in sorted(_trace_events, key=lambda e: e["start"])
+    )
+    return (
+        f'<div style="overflow-x:auto;border:1px solid #eee;border-radius:8px;">'
+        f'<table style="width:100%;border-collapse:collapse;">'
+        f'<thead><tr style="background:#f7f7f7;">'
+        f'<th style="padding:6px 12px;font-size:11px;text-align:left;">Phase</th>'
+        f'<th style="padding:6px 12px;font-size:11px;text-align:left;">Agent</th>'
+        f'<th style="padding:6px 12px;font-size:11px;text-align:left;">Function</th>'
+        f'<th style="padding:6px 12px;font-size:11px;text-align:left;">Duration</th>'
+        f'<th style="padding:6px 12px;font-size:11px;text-align:left;">Timeline</th>'
+        f'</tr></thead>'
+        f'<tbody>{rows}</tbody>'
+        f'</table></div>'
+    )
+
+
+EVAL_COLORS = {"consistency": "#4A90D9", "realism": "#22c55e", "divergence": "#f59e0b"}
+
+
+def build_eval_html():
+    if not _eval_data:
+        return "<p style='color:#aaa;text-align:center;padding:24px;'>Evaluation running… check back in ~15s after generation completes.</p>"
+
+    cards = ""
+    for key in PERSONA_KEYS:
+        if key not in _eval_data:
+            continue
+        c = PERSONA_COLORS[key]
+        p = PERSONAS[key]
+        evals = _eval_data[key]
+
+        metrics = ""
+        total = 0
+        for dim in ["consistency", "realism", "divergence"]:
+            ev = evals.get(dim, {})
+            score = ev.get("score", 5)
+            reason = ev.get("reason", "")
+            total += score
+            col = EVAL_COLORS[dim]
+            bar_pct = int(score * 10)
+            metrics += (
+                f'<div style="margin:8px 0;">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">'
+                f'<span style="font-size:11px;font-weight:700;color:{col};text-transform:uppercase;letter-spacing:0.5px;">{dim}</span>'
+                f'<span style="font-size:13px;font-weight:800;color:{col};">{score}/10</span>'
+                f'</div>'
+                f'<div style="height:4px;background:#eee;border-radius:2px;overflow:hidden;margin-bottom:4px;">'
+                f'<div style="width:{bar_pct}%;height:100%;background:{col};border-radius:2px;"></div>'
+                f'</div>'
+                f'<div style="font-size:11px;color:#666;font-style:italic;line-height:1.4;">{reason}</div>'
+                f'</div>'
+            )
+        avg = round(total / 3, 1)
+
+        cards += (
+            f'<div style="border:2px solid {c}30;border-radius:14px;padding:18px;'
+            f'background:linear-gradient(135deg,{c}08,white);flex:0 0 calc(50% - 6px);box-sizing:border-box;">'
+            f'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">'
+            f'<div style="color:{c};font-size:14px;font-weight:800;">{p["label"]}</div>'
+            f'<div><span style="font-size:20px;font-weight:900;color:{c};">{avg}</span>'
+            f'<span style="font-size:10px;color:#aaa;">/10</span></div>'
+            f'</div>'
+            f'{metrics}'
+            f'</div>'
+        )
+
+    return f'<div style="display:flex;flex-wrap:wrap;gap:12px;">{cards}</div>'
+
+
+def load_eval():
+    _eval_done.wait(timeout=60)
+    yield build_eval_html()
+
+
+def load_traces():
+    if not _trace_events:
+        yield gr.update(value=go.Figure().update_layout(title="Run a session first.", height=250, paper_bgcolor="white")), "<p style='color:#aaa;'>No trace data yet.</p>"
+        return
+    yield gr.update(value=build_trace_chart()), build_trace_table()
+
+
 # ── CSS ───────────────────────────────────────────────────────────────────────
 
 CSS = """
@@ -770,11 +967,11 @@ body { overflow-y: scroll !important; }
   border-bottom-color:#6366f1 !important; font-weight:700 !important; }
 """
 
-ALL_SECTIONS = ["stories", "dash", "tea", "synth", "insight"]
+ALL_SECTIONS = ["stories", "dash", "tea", "synth", "insight", "traces"]
 
 
 def _switch_section(active):
-    """Return visibility updates for 5 sections + variant updates for 5 nav buttons."""
+    """Return visibility updates for 6 sections + variant updates for 6 nav buttons."""
     sec_updates = [gr.update(visible=(s == active)) for s in ALL_SECTIONS]
     nav_updates = [gr.update(variant="primary" if s == active else "secondary") for s in ALL_SECTIONS]
     return sec_updates + nav_updates
@@ -885,6 +1082,7 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
             nav_btn_tea     = gr.Button("☕ Tea House",        variant="secondary", elem_classes=["nav-pill"])
             nav_btn_synth   = gr.Button("🧠 Synthesis",       variant="secondary", elem_classes=["nav-pill"])
             nav_btn_insight = gr.Button("✨ The Insight",     variant="secondary", elem_classes=["nav-pill"])
+            nav_btn_traces  = gr.Button("🔍 Traces",          variant="secondary", elem_classes=["nav-pill"])
 
         # ── Section: Explore Stories (visible by default) ────────────────────
         with gr.Column(visible=True) as sec_stories:
@@ -935,6 +1133,16 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
         with gr.Column(visible=False) as sec_insight:
             gr.HTML(META_HTML)
 
+        # ── Section: Traces ───────────────────────────────────────────────────
+        with gr.Column(visible=False) as sec_traces:
+            gr.HTML('<p style="color:#888;font-size:13px;margin:0 0 12px 0;">LLM call timeline for the current session.</p>')
+            traces_btn   = gr.Button("🔄 Refresh", variant="secondary", size="sm")
+            traces_chart = gr.Plot(visible=True)
+            traces_table = gr.HTML(value="<div style='min-height:200px;'></div>")
+            gr.HTML('<hr style="margin:20px 0;border:none;border-top:1px solid #eee;">')
+            gr.HTML('<h4 style="color:#333;font-size:14px;margin:0 0 12px 0;font-weight:700;">📊 Story Quality Evaluation (LLM-as-Judge)</h4>')
+            eval_html = gr.HTML(value="<p style='color:#aaa;'>Loads after generation completes.</p>")
+
         gr.Button("← Start Over", size="sm", variant="secondary").click(
             fn=lambda: (
                 gr.update(visible=True), gr.update(visible=False), gr.update(visible=False),
@@ -969,26 +1177,44 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
         scroll_to_output=False,
     )
 
-    # Navigation pill wiring — outputs: 5 sections + 5 nav buttons
-    _all_secs = [sec_stories, sec_dash, sec_tea, sec_synth, sec_insight]
-    _all_navs = [nav_btn_stories, nav_btn_dash, nav_btn_tea, nav_btn_synth, nav_btn_insight]
+    # Navigation pill wiring — outputs: 6 sections + 6 nav buttons
+    _all_secs = [sec_stories, sec_dash, sec_tea, sec_synth, sec_insight, sec_traces]
+    _all_navs = [nav_btn_stories, nav_btn_dash, nav_btn_tea, nav_btn_synth, nav_btn_insight, nav_btn_traces]
     for btn, name in [
         (nav_btn_stories, "stories"),
-        (nav_btn_synth,   "synth"),
         (nav_btn_insight, "insight"),
     ]:
         btn.click(fn=partial(_switch_section, name), outputs=_all_secs + _all_navs, scroll_to_output=False)
 
-    # Dashboard nav: switch section then auto-load dashboard
+    # Dashboard nav: switch section then auto-load
     nav_btn_dash.click(
         fn=partial(_switch_section, "dash"), outputs=_all_secs + _all_navs, scroll_to_output=False,
     ).then(
         fn=load_dashboard, outputs=[dash_status, radar_out, dash_html], scroll_to_output=False,
     )
 
+    # Tea House nav: switch section then auto-run Round 1
     nav_btn_tea.click(
         fn=partial(_switch_section, "tea"), outputs=_all_secs + _all_navs, scroll_to_output=False,
+    ).then(
+        fn=partial(run_tea_round, 1), outputs=[tea_status, tea_out], scroll_to_output=False,
     )
+
+    # Synthesis nav: switch section then auto-run synthesis
+    nav_btn_synth.click(
+        fn=partial(_switch_section, "synth"), outputs=_all_secs + _all_navs, scroll_to_output=False,
+    ).then(
+        fn=run_judge_ui, outputs=[judge_status, synthesis_out], scroll_to_output=False,
+    )
+
+    # Traces nav: switch section then auto-load traces
+    nav_btn_traces.click(
+        fn=partial(_switch_section, "traces"), outputs=_all_secs + _all_navs, scroll_to_output=False,
+    ).then(fn=load_traces, outputs=[traces_chart, traces_table], scroll_to_output=False
+    ).then(fn=load_eval, outputs=[eval_html], scroll_to_output=False)
+
+    traces_btn.click(fn=load_traces, outputs=[traces_chart, traces_table], scroll_to_output=False
+    ).then(fn=load_eval, outputs=[eval_html], scroll_to_output=False)
 
     dash_btn.click(fn=load_dashboard, outputs=[dash_status, radar_out, dash_html], scroll_to_output=False)
 
