@@ -4,7 +4,8 @@
 ![Gradio](https://img.shields.io/badge/Gradio-6.x-orange)
 ![Claude Haiku](https://img.shields.io/badge/Claude-Haiku_4.5-blueviolet)
 ![W&B Weave](https://img.shields.io/badge/W%26B-Weave-yellow)
-![Plotly](https://img.shields.io/badge/Plotly-Radar_Chart-lightgrey)
+![Plotly](https://img.shields.io/badge/Plotly-Charts-lightgrey)
+![LLM Eval](https://img.shields.io/badge/LLM--as--Judge-Evaluation-green)
 
 **Let your other lives speak.**
 
@@ -28,11 +29,12 @@ Input one decision (e.g. *"Age 28 — stay in the city or go home for a stable j
 
 | Section | What happens |
 |---|---|
-| 📖 **Explore Stories** | Each persona lives out their path — scored across 5 life dimensions, with a one-line verdict |
+| 📖 **Explore Stories** | Each persona lives out their path — scored across 5 life dimensions, one-line verdict, LLM-as-judge quality badges |
 | 📊 **Life Dashboard** | Radar chart + score table comparing all 4 lives on wealth, happiness, stress, health, fulfillment |
-| ☕ **Tea House** | The 4 versions of you talk to each other — junior self asks forward, senior selves clash, then write letters back |
+| ☕ **Tea House** | The 4 versions of you talk across time — all 3 rounds run automatically in sequence |
 | 🧠 **Synthesis** | A judge agent reads all 4 lives and finds what they share: the regret, the fear, the thing only visible when you see all four at once |
 | ✨ **The Insight** | The core truth the simulation keeps returning to |
+| 🔍 **Traces** | Live LLM call timeline (Gantt chart) + LLM-as-judge evaluation scores per persona |
 
 ---
 
@@ -58,24 +60,32 @@ LifeOrchestrator  ◄── Claude tool_use (cached system prompt)
         ├── Phase 1: one orchestrator call → 4× run_outline tool_use
         │           └── ThreadPoolExecutor: 4 parallel outline generations
         │
-        ├── Phase 2: 4× generate_story (parallel threads, streaming-ready)
+        ├── Phase 2: 4× generate_story (parallel, streaming-ready)
+        │           └── one-liner + regret quote per persona (cached system)
         │
         └── Phase 3: one orchestrator call → 4× run_score tool_use
                     └── ThreadPoolExecutor: 4 parallel score evaluations
         │
         ▼
-Tea House (streaming per round)
+LLM-as-Judge Evaluation (background, after Phase 3)
+   12 scorer calls in parallel — ThreadPoolExecutor(max_workers=12)
+   ├── consistency: does the story match the outline facts?
+   ├── realism:     is the outcome plausible for this persona's choices?
+   └── divergence:  how distinct is this story from the other 3?
+        │
+        ▼
+Tea House (streaming, auto-advances through all 3 rounds)
    Round 1: junior → senior (forward advice)
-   Round 2: senior ↔ senior (clash + envy)
+   Round 2: senior ↔ senior (clash + envy + warning)
    Round 3: senior → junior (letter back)
         │
         ▼
-Final Synthesis (judge agent, all 4 stories)
+Final Synthesis (judge agent reads all 4 stories)
 ```
 
-**Why this is genuinely multi-agent:** the `LifeOrchestrator` makes a single LLM call that returns 4 `tool_use` blocks — one per persona. The orchestrator decides which agents to invoke and when; the subagents execute in parallel. This is not prompt injection or hardcoded routing.
+**Why this is genuinely multi-agent:** the `LifeOrchestrator` makes a single LLM call that returns 4 `tool_use` blocks — one per persona. The orchestrator decides which agents to invoke; subagents execute in parallel. Not prompt injection or hardcoded routing.
 
-**Why it's fast:** all LLM calls use `cache_control: ephemeral` on system prompts (~400 tokens each). After the first call per session, system prompts are served from cache — ~85% token savings and lower latency on every subsequent request.
+**Why it's fast:** all LLM calls use `cache_control: ephemeral` on system prompts. After the first call per session, system prompts (~400 tokens each) are served from cache — ~85% token savings on every subsequent request. Evaluation runs 12 scorer calls concurrently instead of sequentially.
 
 All LLM calls use **Claude Haiku 4.5** via the Anthropic API. Traces logged to **W&B Weave**.
 
@@ -107,9 +117,10 @@ Open `http://localhost:7860`
 
 ## Stack
 
-- **LLM** — Anthropic Claude Haiku 4.5 (streaming + tool_use)
-- **Multi-agent** — Orchestrator + 4 subagents via Anthropic `tool_use`, prompt caching (`cache_control: ephemeral`)
+- **LLM** — Anthropic Claude Haiku 4.5 (streaming + tool_use + prompt caching)
+- **Multi-agent** — `LifeOrchestrator` + 4 subagents via Anthropic `tool_use`; `cache_control: ephemeral` on all system prompts
+- **Evaluation** — LLM-as-judge (`@weave.op()`) scoring consistency / realism / divergence; 12 parallel calls via `ThreadPoolExecutor`
+- **Observability** — W&B Weave for LLM traces + evaluation; W&B for score logging; in-app Gantt timeline
 - **UI** — Gradio 6.x with custom CSS nav pills
-- **Charts** — Plotly radar chart
-- **Observability** — W&B Weave for LLM traces, W&B for score logging
-- **Concurrency** — `ThreadPoolExecutor` for parallel tool execution, `threading` for background generation
+- **Charts** — Plotly radar chart + horizontal bar timeline
+- **Concurrency** — `ThreadPoolExecutor` for parallel tool execution and evaluation; `threading` for background generation

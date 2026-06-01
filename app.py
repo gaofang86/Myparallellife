@@ -17,6 +17,9 @@ from evaluator import evaluate_stories
 import wandb, weave
 import os, anthropic
 
+_anthropic_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+_SIMPLE_SYSTEM = [{"type": "text", "text": "You are a concise assistant. Follow instructions exactly.", "cache_control": {"type": "ephemeral"}}]
+
 WANDB_PROJECT = "parallel-lives"
 WEAVE_PROJECT = "parallel-lives"
 
@@ -72,10 +75,10 @@ def _record(name: str, persona: str, phase: str, start: float, end: float):
 # ── LLM helper ───────────────────────────────────────────────────────────────
 
 def _call_llm_simple(prompt, max_tokens=120):
-    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-    resp = client.messages.create(
+    resp = _anthropic_client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=max_tokens,
+        system=_SIMPLE_SYSTEM,
         messages=[{"role": "user", "content": prompt}],
     )
     return resp.content[0].text.strip()
@@ -83,12 +86,13 @@ def _call_llm_simple(prompt, max_tokens=120):
 
 def _stream_simple(prompt, system=None, max_tokens=300):
     """Yield text tokens from a one-shot streaming LLM call."""
-    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     kwargs = dict(model="claude-haiku-4-5-20251001", max_tokens=max_tokens,
                   messages=[{"role": "user", "content": prompt}])
     if system:
-        kwargs["system"] = system
-    with client.messages.stream(**kwargs) as stream:
+        kwargs["system"] = [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}] if isinstance(system, str) else system
+    else:
+        kwargs["system"] = _SIMPLE_SYSTEM
+    with _anthropic_client.messages.stream(**kwargs) as stream:
         yield from stream.text_stream
 
 
@@ -175,6 +179,19 @@ def snapshot_card_html(key):
         score_rows = '<div style="color:#ccc;font-size:12px;">Scoring…</div>'
         avg_html = ""
 
+    eval_result = _eval_data.get(key)
+    if eval_result:
+        eval_pills = "".join(
+            f'<span style="background:#f3f4f6;border-radius:6px;padding:2px 7px;'
+            f'font-size:10px;color:#666;margin-right:3px;white-space:nowrap;">'
+            f'{dim[:3].upper()} <b style="color:{"#16a34a" if eval_result[dim]["score"]>=7 else "#dc2626" if eval_result[dim]["score"]<=4 else "#888"};">{eval_result[dim]["score"]}</b></span>'
+            for dim in ["consistency", "realism", "divergence"]
+            if dim in eval_result
+        )
+        eval_row = f'<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:3px;">{eval_pills}</div>'
+    else:
+        eval_row = ""
+
     return (
         f'<div style="border:2px solid {c}30;border-radius:16px;padding:20px;'
         f'background:linear-gradient(135deg,{c}0a,white);height:100%;box-sizing:border-box;">'
@@ -187,6 +204,7 @@ def snapshot_card_html(key):
         f'</div>'
         f'<p style="font-size:14px;color:#222;line-height:1.5;margin:10px 0 12px 0;font-style:italic;">"{oneliner}"</p>'
         f'{score_rows}'
+        f'{eval_row}'
         f'</div>'
     )
 
@@ -525,10 +543,15 @@ def reveal_and_start(situation, age, years_val, ans1, ans2, ans3, ans4):
         target=_start_background_generation, args=(enriched, age, years), daemon=True
     ).start()
 
+    # Force-initialize all section DOMs by including their visibility state in this return.
+    # _switch_section is pure Python (<1ms), included here so Gradio renders all
+    # section components on first reveal instead of lazily on first nav click.
+    section_inits = _switch_section("stories")
     return (
         gr.update(visible=False),  # questions
         gr.update(visible=True),   # main section
         "⏳ Generating 4 parallel lives in background — pick a story to read while it runs.",
+        *section_inits,
     )
 
 
@@ -1169,7 +1192,7 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
     reveal_btn.click(
         fn=reveal_and_start,
         inputs=[situation_input, age_input, years_state, q1, q2, q3, q4],
-        outputs=[question_section, main_section, gen_status],
+        outputs=[question_section, main_section, gen_status] + _all_secs + _all_navs,
         scroll_to_output=False,
     ).then(
         fn=load_snapshots,
@@ -1193,18 +1216,12 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
         fn=load_dashboard, outputs=[dash_status, radar_out, dash_html], scroll_to_output=False,
     )
 
-    # Tea House nav: switch section then auto-run Round 1
     nav_btn_tea.click(
         fn=partial(_switch_section, "tea"), outputs=_all_secs + _all_navs, scroll_to_output=False,
-    ).then(
-        fn=partial(run_tea_round, 1), outputs=[tea_status, tea_out], scroll_to_output=False,
     )
 
-    # Synthesis nav: switch section then auto-run synthesis
     nav_btn_synth.click(
         fn=partial(_switch_section, "synth"), outputs=_all_secs + _all_navs, scroll_to_output=False,
-    ).then(
-        fn=run_judge_ui, outputs=[judge_status, synthesis_out], scroll_to_output=False,
     )
 
     # Traces nav: switch section then auto-load traces
@@ -1230,7 +1247,13 @@ with gr.Blocks(title="Parallel Lives", css=CSS) as demo:
             scroll_to_output=False,
         )
 
-    tea_r1.click(fn=partial(run_tea_round, 1), outputs=[tea_status, tea_out], scroll_to_output=False)
+    tea_r1.click(
+        fn=partial(run_tea_round, 1), outputs=[tea_status, tea_out], scroll_to_output=False,
+    ).then(
+        fn=partial(run_tea_round, 2), outputs=[tea_status, tea_out], scroll_to_output=False,
+    ).then(
+        fn=partial(run_tea_round, 3), outputs=[tea_status, tea_out], scroll_to_output=False,
+    )
     tea_r2.click(fn=partial(run_tea_round, 2), outputs=[tea_status, tea_out], scroll_to_output=False)
     tea_r3.click(fn=partial(run_tea_round, 3), outputs=[tea_status, tea_out], scroll_to_output=False)
 
