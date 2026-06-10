@@ -17,6 +17,21 @@ const screens = [...document.querySelectorAll(".screen")];
 const progress = document.querySelector("#progress-fill");
 const stepLabel = document.querySelector("#step-label");
 const stepMap = { decision: 1, priority: 2, lives: 3, experiment: 4, journey: 5 };
+const analyticsSource = new URLSearchParams(window.location.search).get("source") || "direct";
+let decisionStartedCaptured = false;
+
+function captureEvent(name, properties = {}) {
+  if (!window.posthog?.capture) return;
+  window.posthog.capture(name, {
+    source: analyticsSource,
+    ...properties,
+  });
+}
+
+captureEvent("page viewed", {
+  page: "public preview",
+  referrer_host: document.referrer ? new URL(document.referrer).hostname : "direct",
+});
 
 const directionSets = {
   laidOff: [
@@ -67,12 +82,24 @@ function makeDirections(rows) {
 }
 
 function directionsForDecision(decision) {
+  const category = decisionCategory(decision);
+  const setByCategory = {
+    laid_off: directionSets.laidOff,
+    graduate: directionSets.graduate,
+    relationship: directionSets.relationship,
+    turning_30: directionSets.turning30,
+    change: directionSets.change,
+  };
+  return makeDirections(setByCategory[category]);
+}
+
+function decisionCategory(decision) {
   const text = decision.toLowerCase();
-  if (/laid off|layoff|lost my job|fired/.test(text)) return makeDirections(directionSets.laidOff);
-  if (/graduat|college|university|school/.test(text)) return makeDirections(directionSets.graduate);
-  if (/relationship|breakup|broke up|divorc|partner/.test(text)) return makeDirections(directionSets.relationship);
-  if (/\b30\b|turning thirty|turning 30|behind/.test(text)) return makeDirections(directionSets.turning30);
-  return makeDirections(directionSets.change);
+  if (/laid off|layoff|lost my job|fired/.test(text)) return "laid_off";
+  if (/graduat|college|university|school/.test(text)) return "graduate";
+  if (/relationship|breakup|broke up|divorc|partner/.test(text)) return "relationship";
+  if (/\b30\b|turning thirty|turning 30|behind/.test(text)) return "turning_30";
+  return "change";
 }
 
 const scenarioExamples = [
@@ -243,11 +270,22 @@ document.addEventListener("click", (event) => {
     state.priority = priority.dataset.priority;
     state.directions = directionsForDecision(state.decision);
     renderLives();
+    captureEvent("directions viewed", {
+      priority: state.priority,
+      decision_category: decisionCategory(state.decision),
+    });
     showScreen("lives");
   }
 
   const life = event.target.closest("[data-life]");
-  if (life) selectLife(life.dataset.life);
+  if (life) {
+    selectLife(life.dataset.life);
+    captureEvent("direction selected", {
+      direction: state.life.title,
+      priority: state.priority,
+      decision_category: decisionCategory(state.decision),
+    });
+  }
 
   const back = event.target.closest("[data-back]");
   if (back) showScreen(back.dataset.back);
@@ -278,6 +316,12 @@ document.querySelector("#decision-next").addEventListener("click", () => {
   }
   state.decision = value;
   showScreen("priority");
+});
+
+document.querySelector("#decision-input").addEventListener("input", () => {
+  if (decisionStartedCaptured) return;
+  decisionStartedCaptured = true;
+  captureEvent("decision started");
 });
 
 document.querySelector("#experiment-next").addEventListener("click", () => {
@@ -320,6 +364,9 @@ document.querySelector("#pilot-form").addEventListener("submit", async (event) =
 
     if (!response.ok) throw new Error("Form submission failed");
 
+    captureEvent("waitlist submitted", {
+      areas_count: data.areas.length,
+    });
     success.hidden = false;
     form.reset();
   } catch {
