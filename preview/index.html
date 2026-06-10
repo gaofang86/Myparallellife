@@ -182,24 +182,24 @@
         </div>
         <div class="screen-actions split">
           <button class="text-button" data-back="lives">← Choose another life</button>
-          <button class="button button-primary" id="experiment-next">See the journey</button>
+          <button class="button button-primary" id="experiment-next">Preview my journey</button>
         </div>
       </section>
 
       <section class="screen" data-screen="journey">
         <div class="screen-heading">
-          <span class="step-kicker">A private evidence trail</span>
-          <h2>Clarity comes from what you learn, not what you predict</h2>
-          <p>Your Agent helps separate observation from interpretation, then adjusts the next experiment.</p>
+          <span class="step-kicker">Your journey preview</span>
+          <h2>Your experiment is ready. The evidence comes next.</h2>
+          <p>This is how your private journey will grow after you try the experiment and record what actually happened.</p>
         </div>
         <div class="journey-grid">
           <article class="review-card">
-            <span class="card-label">Agent review</span>
-            <h3>What the evidence suggests</h3>
+            <span class="card-label">Before you begin</span>
+            <h3>What to notice</h3>
             <p id="review-copy"></p>
             <div class="recommendation">
-              <span>Recommendation</span>
-              <strong>Continue, with a smaller test</strong>
+              <span>Next step</span>
+              <strong>Run the experiment, then record what happened</strong>
             </div>
           </article>
           <article class="timeline-card">
@@ -208,13 +208,13 @@
               <span>1</span>
               <div><strong>Direction chosen</strong><small id="timeline-direction"></small></div>
             </div>
-            <div class="timeline-item complete">
+            <div class="timeline-item pending">
               <span>2</span>
-              <div><strong>First experiment</strong><small>Evidence collected in the real world</small></div>
+              <div><strong>First experiment</strong><small id="timeline-experiment">Ready to try in the real world</small></div>
             </div>
-            <div class="timeline-item">
+            <div class="timeline-item locked">
               <span>3</span>
-              <div><strong>Next experiment</strong><small>Adjusted from what you learned</small></div>
+              <div><strong>Agent review</strong><small>Available after you record action, thought, and feeling</small></div>
             </div>
           </article>
         </div>

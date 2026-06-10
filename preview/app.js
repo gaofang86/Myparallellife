@@ -81,7 +81,125 @@ function makeDirections(rows) {
   }));
 }
 
-function directionsForDecision(decision) {
+const priorityLenses = {
+  Stability: {
+    gain: "More predictability and a clearer downside",
+    giveUp: "Some speed or upside while you reduce uncertainty",
+    action: "Set one downside limit before you begin.",
+    question: "Does this feel safer because it fits, or only because it is familiar?",
+  },
+  Growth: {
+    gain: "New capability and evidence about your upside",
+    giveUp: "Some comfort while you learn in public",
+    action: "Choose the version that teaches you something observable.",
+    question: "Does the work create enough energy to justify the learning curve?",
+  },
+  Freedom: {
+    gain: "More autonomy and room to change course",
+    giveUp: "Some structure and near-term predictability",
+    action: "Keep the test reversible and notice whether it creates real choice.",
+    question: "Does this create real choice, or simply move uncertainty somewhere else?",
+  },
+};
+
+function cleanDecision(decision) {
+  return decision
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/\s+/g, " ")
+    .replace(/[?.!]+$/, "")
+    .trim();
+}
+
+function sentenceCase(text) {
+  const cleaned = text.trim().replace(/^(whether|if|should i|do i|to)\s+/i, "");
+  return cleaned ? cleaned.charAt(0).toUpperCase() + cleaned.slice(1) : cleaned;
+}
+
+function shortPhrase(text, maxWords = 9) {
+  const words = text.trim().split(/\s+/);
+  return words.length > maxWords ? `${words.slice(0, maxWords).join(" ")}…` : words.join(" ");
+}
+
+function appendSentence(text, sentence) {
+  const trimmed = text.trim();
+  const punctuation = /[.!?]$/.test(trimmed) ? "" : ".";
+  return `${trimmed}${punctuation} ${sentence}`;
+}
+
+function explicitOptions(decision) {
+  const cleaned = cleanDecision(decision)
+    .replace(/^(i am|i'm|im)\s+(deciding|trying to decide|wondering)\s+/i, "")
+    .replace(/^should i\s+/i, "");
+  const match = cleaned.match(/^(.{3,90}?)\s+(?:or|versus|vs\.?)\s+(.{3,90})$/i);
+  if (!match) return null;
+  return [sentenceCase(shortPhrase(match[1])), sentenceCase(shortPhrase(match[2]))];
+}
+
+function decisionTopic(decision) {
+  const cleaned = cleanDecision(decision)
+    .replace(/^(i am|i'm|im|should i|do i|can i|what if i)\s+/i, "")
+    .replace(/^(deciding|trying to decide|wondering)\s+(whether|if)?\s*/i, "");
+  return shortPhrase(cleaned || "this decision", 11);
+}
+
+function applyPriorityLens(rows, priority) {
+  const lens = priorityLenses[priority] || priorityLenses.Growth;
+  return rows.map((row, index) => {
+    const next = [...row];
+    next[5] = appendSentence(next[5], lens.action);
+    if (index === 2) {
+      next[3] = lens.gain;
+      next[4] = lens.giveUp;
+      next[6] = lens.question;
+    } else {
+      next[6] = `${next[6]} ${lens.question}`;
+    }
+    return next;
+  });
+}
+
+function optionDirections(options, priority) {
+  const [first, second] = options;
+  const lens = priorityLenses[priority] || priorityLenses.Growth;
+  const rows = [
+    ["option-a", first, `Explore what an ordinary week on the “${first}” path would actually feel like`, `Direct evidence about “${first}”`, `Less time exploring “${second}”`, `Spend 45 minutes doing one ordinary task related to “${first}.”`, `Did the reality of “${first}” feel better than the idea of it?`],
+    ["option-b", second, `Give the “${second}” path a fair test before ruling it in or out`, `Direct evidence about “${second}”`, `Less time deepening “${first}”`, `Spend 45 minutes doing one ordinary task related to “${second}.”`, `Did the reality of “${second}” create energy, resistance, or useful surprise?`],
+    ["bridge", "Build a bridge between both", `Reduce the pressure to make “${first}” and “${second}” an immediate all-or-nothing choice`, lens.gain, lens.giveUp, `Design one reversible week that preserves part of “${first}” while testing one part of “${second}.”`, lens.question],
+    ["criteria", "Choose from evidence, not urgency", `Compare both paths using the conditions that matter most to you now`, "A decision grounded in your real constraints", "The emotional relief of choosing immediately", `Write three must-haves, then score “${first}” and “${second}” against real examples.`, "Which option still fits when you judge the ordinary week, not the best-case story?"],
+  ];
+  return rows.map((row, index) => {
+    const next = [...row];
+    next[5] = appendSentence(next[5], lens.action);
+    if (index !== 2) next[6] = `${next[6]} ${lens.question}`;
+    return next;
+  });
+}
+
+function contextualizeDirections(rows, decision, priority) {
+  const topic = decisionTopic(decision);
+  const lens = priorityLenses[priority] || priorityLenses.Growth;
+  return applyPriorityLens(rows, priority).map((row, index) => {
+    const next = [...row];
+    if (index === 0) {
+      next[2] = `${next[2]} — applied to “${topic}”`;
+      next[6] = `For “${topic},” ${next[6].charAt(0).toLowerCase()}${next[6].slice(1)}`;
+    }
+    if (index === 1) {
+      next[5] = `${next[5]} Keep it focused on “${topic}.”`;
+    }
+    if (index === 2) {
+      next[3] = lens.gain;
+      next[4] = lens.giveUp;
+    }
+    return next;
+  });
+}
+
+function directionsForDecision(decision, priority) {
+  const options = explicitOptions(decision);
+  if (options) return makeDirections(optionDirections(options, priority));
+
   const category = decisionCategory(decision);
   const setByCategory = {
     laid_off: directionSets.laidOff,
@@ -90,13 +208,13 @@ function directionsForDecision(decision) {
     turning_30: directionSets.turning30,
     change: directionSets.change,
   };
-  return makeDirections(setByCategory[category]);
+  return makeDirections(contextualizeDirections(setByCategory[category], decision, priority));
 }
 
 function decisionCategory(decision) {
   const text = decision.toLowerCase();
   if (/laid off|layoff|lost my job|fired/.test(text)) return "laid_off";
-  if (/graduat|college|university|school/.test(text)) return "graduate";
+  if (/graduat|college|university|school|degree|master'?s|phd|study/.test(text)) return "graduate";
   if (/relationship|breakup|broke up|divorc|partner/.test(text)) return "relationship";
   if (/\b30\b|turning thirty|turning 30|behind/.test(text)) return "turning_30";
   return "change";
@@ -226,18 +344,27 @@ function showScreen(name, { scroll = true } = {}) {
 function renderLives() {
   const grid = document.querySelector("#life-grid");
   document.querySelector("#lens-copy").textContent =
-    `${state.priority} matters most right now`;
+    `${state.priority} matters most right now · shaped around “${decisionTopic(state.decision)}”`;
   grid.innerHTML = state.directions.map((life) => `
     <article class="life-card" style="--accent:${life.color}">
-      <h3>${life.title}</h3>
-      <p>${life.meaning}</p>
+      <h3>${escapeHtml(life.title)}</h3>
+      <p>${escapeHtml(life.meaning)}</p>
       <div class="direction-tradeoffs">
-        <span><strong>Gain</strong>${life.gain}</span>
-        <span><strong>Give up</strong>${life.giveUp}</span>
+        <span><strong>Gain</strong>${escapeHtml(life.gain)}</span>
+        <span><strong>Give up</strong>${escapeHtml(life.giveUp)}</span>
       </div>
-      <button class="button button-secondary" data-life="${life.id}">Explore this direction</button>
+      <button class="button button-secondary" data-life="${escapeHtml(life.id)}">Explore this direction</button>
     </article>
   `).join("");
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function selectLife(id) {
@@ -268,7 +395,7 @@ document.addEventListener("click", (event) => {
   const priority = event.target.closest("[data-priority]");
   if (priority) {
     state.priority = priority.dataset.priority;
-    state.directions = directionsForDecision(state.decision);
+    state.directions = directionsForDecision(state.decision, state.priority);
     renderLives();
     captureEvent("directions viewed", {
       priority: state.priority,
@@ -326,8 +453,9 @@ document.querySelector("#decision-input").addEventListener("input", () => {
 
 document.querySelector("#experiment-next").addEventListener("click", () => {
   document.querySelector("#review-copy").textContent =
-    `You chose ${state.life.title.toLowerCase()} through a ${state.priority.toLowerCase()} lens. One experiment cannot settle the decision, but it can reveal whether the daily reality gives you energy or resistance.`;
+    `While testing ${state.life.title.toLowerCase()}, pay attention to this: ${state.life.question} No conclusion has been drawn yet — your notes after the experiment become the evidence.`;
   document.querySelector("#timeline-direction").textContent = `${state.life.title} · ${state.priority} lens`;
+  document.querySelector("#timeline-experiment").textContent = state.life.action;
   showScreen("journey");
 });
 

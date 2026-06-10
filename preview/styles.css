@@ -332,6 +332,8 @@ textarea:focus, input:focus, select:focus { border-color: var(--violet); box-sha
 .timeline-item:not(:last-child) { border-bottom: 1px solid var(--line); }
 .timeline-item > span { flex: 0 0 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); }
 .timeline-item.complete > span { color: white; border-color: var(--violet); background: var(--violet); }
+.timeline-item.pending > span { color: var(--violet-dark); border-color: #aaa4ff; background: var(--violet-soft); }
+.timeline-item.locked { opacity: .58; }
 .timeline-item small { display: block; margin-top: 4px; color: var(--muted); }
 
 .how-it-works { width: min(1120px, calc(100% - 40px)); margin: 0 auto 120px; }
