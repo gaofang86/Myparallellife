@@ -378,20 +378,57 @@ function showScreen(name, { scroll = true } = {}) {
 }
 
 function renderLives() {
-  const grid = document.querySelector("#life-grid");
+  const list = document.querySelector("#direction-list");
   document.querySelector("#flow-decision").textContent = decisionTopic(state.decision);
   document.querySelector("#flow-priority").textContent = state.priority;
-  grid.innerHTML = state.directions.map((life) => `
-    <article class="life-card" style="--accent:${life.color};--card-index:${state.directions.indexOf(life)}">
+  list.innerHTML = state.directions.map((life, index) => `
+    <button class="direction-tab${index === 0 ? " is-active" : ""}"
+      type="button"
+      data-direction="${escapeHtml(life.id)}"
+      style="--accent:${life.color};--card-index:${index}"
+      aria-pressed="${index === 0}">
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      <div>
+        <strong>${escapeHtml(life.title)}</strong>
+        <small>${escapeHtml(shortPhrase(life.meaning, 9))}</small>
+      </div>
+      <i aria-hidden="true">→</i>
+    </button>
+  `).join("");
+  renderDirectionDetail(state.directions[0].id);
+}
+
+function renderDirectionDetail(id) {
+  const life = state.directions.find((direction) => direction.id === id);
+  if (!life) return;
+  const detail = document.querySelector("#direction-detail");
+  document.querySelectorAll(".direction-tab").forEach((tab) => {
+    const isActive = tab.dataset.direction === id;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-pressed", String(isActive));
+  });
+  detail.style.setProperty("--accent", life.color);
+  detail.innerHTML = `
+    <div class="detail-heading">
+      <span>Selected direction</span>
       <h3>${escapeHtml(life.title)}</h3>
       <p>${escapeHtml(life.meaning)}</p>
-      <div class="direction-tradeoffs">
-        <span><strong>Gain</strong>${escapeHtml(life.gain)}</span>
-        <span><strong>Give up</strong>${escapeHtml(life.giveUp)}</span>
-      </div>
-      <button class="button button-secondary" data-life="${escapeHtml(life.id)}">Explore this direction</button>
-    </article>
-  `).join("");
+    </div>
+    <div class="detail-tradeoffs">
+      <div><span>Gain</span><strong>${escapeHtml(life.gain)}</strong></div>
+      <div><span>Trade-off</span><strong>${escapeHtml(life.giveUp)}</strong></div>
+    </div>
+    <div class="detail-experiment">
+      <span>7-day experiment</span>
+      <strong>${escapeHtml(life.action)}</strong>
+      <small>${escapeHtml(life.question)}</small>
+    </div>
+    <button class="button button-primary full" data-life="${escapeHtml(life.id)}">
+      Build this experiment
+    </button>
+  `;
+  detail.classList.remove("is-updating");
+  window.requestAnimationFrame(() => detail.classList.add("is-updating"));
 }
 
 function escapeHtml(value) {
@@ -405,9 +442,6 @@ function escapeHtml(value) {
 
 function selectLife(id) {
   state.life = state.directions.find((life) => life.id === id);
-  document.querySelectorAll(".life-card").forEach((card) => {
-    card.classList.toggle("is-selected", card.querySelector("[data-life]")?.dataset.life === id);
-  });
   document.querySelector("#experiment-title").textContent = state.life.title;
   document.querySelector("#experiment-intro").textContent =
     `You are not choosing this life forever. You are collecting one piece of evidence about whether it fits.`;
@@ -450,6 +484,15 @@ document.addEventListener("click", (event) => {
       direction: state.life.title,
       priority: state.priority,
       decision_category: decisionCategory(state.decision),
+    });
+  }
+
+  const direction = event.target.closest("[data-direction]");
+  if (direction) {
+    renderDirectionDetail(direction.dataset.direction);
+    captureEvent("direction previewed", {
+      direction: direction.dataset.direction,
+      priority: state.priority,
     });
   }
 

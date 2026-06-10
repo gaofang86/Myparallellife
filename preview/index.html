@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260610-2">
+  <link rel="stylesheet" href="styles.css?v=20260610-4">
 </head>
 <body>
   <header class="site-header">
@@ -81,6 +81,41 @@
         <span>No permanent choice</span>
         <span>Private by default</span>
         <span>One experiment at a time</span>
+      </div>
+    </section>
+
+    <section class="crossroads-marquee" aria-labelledby="crossroads-title">
+      <div class="marquee-heading">
+        <span class="eyebrow">Different lives, familiar questions</span>
+        <h2 id="crossroads-title">People arrive at all kinds of crossroads</h2>
+      </div>
+      <div class="marquee-row theme-row">
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <span>Career change</span><span>Moving abroad</span><span>Starting over at 30</span>
+            <span>Going back to school</span><span>Building something of my own</span>
+            <span>Choosing stability</span><span>Recovering from burnout</span><span>Returning home</span>
+          </div>
+          <div class="marquee-group" aria-hidden="true">
+            <span>Career change</span><span>Moving abroad</span><span>Starting over at 30</span>
+            <span>Going back to school</span><span>Building something of my own</span>
+            <span>Choosing stability</span><span>Recovering from burnout</span><span>Returning home</span>
+          </div>
+        </div>
+      </div>
+      <div class="marquee-row question-row">
+        <div class="marquee-track reverse">
+          <div class="marquee-group">
+            <span>“Am I already behind?”</span><span>“Do I want the work or just the identity?”</span>
+            <span>“Can I test this without quitting?”</span><span>“What am I afraid to lose?”</span>
+            <span>“What would I choose without the deadline?”</span><span>“Does the ordinary life fit me?”</span>
+          </div>
+          <div class="marquee-group" aria-hidden="true">
+            <span>“Am I already behind?”</span><span>“Do I want the work or just the identity?”</span>
+            <span>“Can I test this without quitting?”</span><span>“What am I afraid to lose?”</span>
+            <span>“What would I choose without the deadline?”</span><span>“Does the ordinary life fit me?”</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -162,7 +197,10 @@
             <small>Choose one. You are not choosing forever.</small>
           </div>
         </div>
-        <div class="life-grid" id="life-grid"></div>
+        <div class="direction-explorer">
+          <div class="direction-list" id="direction-list" aria-label="Possible directions"></div>
+          <article class="direction-detail" id="direction-detail" aria-live="polite"></article>
+        </div>
         <div class="screen-actions">
           <button class="text-button" data-back="priority">← Change what matters</button>
         </div>
@@ -276,10 +314,9 @@
     <section class="how-it-works" aria-labelledby="how-title">
       <div class="section-heading">
         <span class="eyebrow">Why this is different</span>
-        <h2 id="how-title">Explore possible lives.<br>Try one for real.</h2>
+        <h2 id="how-title">Explore possible lives<br>Try one for real</h2>
         <p>You do not need a perfect answer. You need a small way to learn.</p>
       </div>
-      <div class="journey-rail" aria-hidden="true"><span></span></div>
       <div class="feature-journey">
         <article class="feature-card feature-explore">
           <div class="feature-topline"><span>01</span><small>Explore</small></div>
@@ -331,10 +368,36 @@
     </section>
 
     <section class="pilot-cta">
-      <span class="eyebrow">Meet others at a crossroads</span>
-      <h2>You’re not the only one figuring it out</h2>
-      <p>Connect with people exploring their next chapter through small, real-world experiments.</p>
-      <button class="button button-light" data-open-pilot>Meet others at a crossroads</button>
+      <div class="pilot-copy">
+        <span class="eyebrow">Perspective from people who get it</span>
+        <h2>Some choices feel lighter when you do not carry them alone</h2>
+        <p>Meet people exploring similar questions. Share an experiment, ask what they learned, or simply listen.</p>
+        <button class="button button-primary" data-open-pilot>Find people at a similar crossroads</button>
+        <small>You choose what to share. Your journey stays yours.</small>
+      </div>
+      <div class="peer-board" aria-hidden="true">
+        <div class="peer-orbit">
+          <span class="peer-avatar peer-one">M</span>
+          <span class="peer-avatar peer-two">J</span>
+          <span class="peer-avatar peer-three">A</span>
+          <span class="peer-avatar peer-you">You</span>
+          <i class="peer-line line-one"></i>
+          <i class="peer-line line-two"></i>
+          <i class="peer-line line-three"></i>
+        </div>
+        <div class="peer-note note-one">
+          <span>Changing careers</span>
+          <p>“I tested the daily work before changing the title.”</p>
+        </div>
+        <div class="peer-note note-two">
+          <span>Moving home</span>
+          <p>“One ordinary week told me more than another pros-and-cons list.”</p>
+        </div>
+        <div class="peer-note note-three">
+          <span>Starting over</span>
+          <p>“I did not need certainty. I needed one honest next step.”</p>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -417,6 +480,6 @@
       });
     }
   </script>
-  <script src="app.js?v=20260610-2"></script>
+  <script src="app.js?v=20260610-4"></script>
 </body>
 </html>
