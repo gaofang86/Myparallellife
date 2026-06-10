@@ -587,7 +587,7 @@ document.querySelector("#pilot-form").addEventListener("submit", async (event) =
     error.hidden = false;
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = "Meet others at a crossroads";
+    submitButton.textContent = "Explore my crossroads together";
   }
 });
 
