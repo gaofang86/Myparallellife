@@ -291,7 +291,8 @@ const scenarioExamples = [
 
 const scenarioDemo = document.querySelector(".scenario-demo");
 const scenarioOptions = [...document.querySelectorAll(".direction-option")];
-const scenarioDots = [...document.querySelectorAll(".scenario-dots span")];
+const scenarioDots = [...document.querySelectorAll(".scenario-dots button")];
+const howSection = document.querySelector(".how-it-works");
 let scenarioIndex = 0;
 let directionIndex = 0;
 
@@ -310,7 +311,12 @@ function renderScenario(index) {
     });
     directionIndex = 0;
     updateActiveDirection();
-    scenarioDots.forEach((dot, dotIndex) => dot.classList.toggle("is-active", dotIndex === index));
+    scenarioDots.forEach((dot, dotIndex) => {
+      const isActive = dotIndex === index;
+      dot.classList.toggle("is-active", isActive);
+      if (isActive) dot.setAttribute("aria-current", "true");
+      else dot.removeAttribute("aria-current");
+    });
     copy.classList.remove("is-changing");
   }, 280);
 }
@@ -331,8 +337,38 @@ if (scenarioDemo && !window.matchMedia("(prefers-reduced-motion: reduce)").match
   }, 3000);
 }
 
+scenarioDots.forEach((dot) => {
+  dot.addEventListener("click", () => {
+    scenarioIndex = Number(dot.dataset.scenarioIndex);
+    directionIndex = 0;
+    renderScenario(scenarioIndex);
+    captureEvent("example selected", {
+      example_index: scenarioIndex,
+    });
+  });
+});
+
+if (howSection && "IntersectionObserver" in window) {
+  howSection.classList.add("motion-ready");
+  const howObserver = new IntersectionObserver(([entry], observer) => {
+    if (!entry.isIntersecting) return;
+    howSection.classList.add("is-revealed");
+    observer.disconnect();
+  }, { threshold: 0.18 });
+  howObserver.observe(howSection);
+}
+
 function showScreen(name, { scroll = true } = {}) {
-  screens.forEach((screen) => screen.classList.toggle("active", screen.dataset.screen === name));
+  screens.forEach((screen) => {
+    const isActive = screen.dataset.screen === name;
+    screen.classList.toggle("active", isActive);
+    screen.classList.remove("animate-in");
+    if (isActive) {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => screen.classList.add("animate-in"));
+      });
+    }
+  });
   const step = stepMap[name];
   progress.style.width = `${step * 20}%`;
   stepLabel.textContent = `Step ${step} of 5`;
@@ -343,10 +379,10 @@ function showScreen(name, { scroll = true } = {}) {
 
 function renderLives() {
   const grid = document.querySelector("#life-grid");
-  document.querySelector("#lens-copy").textContent =
-    `${state.priority} matters most right now · shaped around “${decisionTopic(state.decision)}”`;
+  document.querySelector("#flow-decision").textContent = decisionTopic(state.decision);
+  document.querySelector("#flow-priority").textContent = state.priority;
   grid.innerHTML = state.directions.map((life) => `
-    <article class="life-card" style="--accent:${life.color}">
+    <article class="life-card" style="--accent:${life.color};--card-index:${state.directions.indexOf(life)}">
       <h3>${escapeHtml(life.title)}</h3>
       <p>${escapeHtml(life.meaning)}</p>
       <div class="direction-tradeoffs">
@@ -369,13 +405,16 @@ function escapeHtml(value) {
 
 function selectLife(id) {
   state.life = state.directions.find((life) => life.id === id);
+  document.querySelectorAll(".life-card").forEach((card) => {
+    card.classList.toggle("is-selected", card.querySelector("[data-life]")?.dataset.life === id);
+  });
   document.querySelector("#experiment-title").textContent = state.life.title;
   document.querySelector("#experiment-intro").textContent =
     `You are not choosing this life forever. You are collecting one piece of evidence about whether it fits.`;
   document.querySelector("#lens-pill").textContent = `${state.priority} lens`;
   document.querySelector("#experiment-action").textContent = state.life.action;
   document.querySelector("#experiment-question").textContent = state.life.question;
-  showScreen("experiment");
+  window.setTimeout(() => showScreen("experiment"), 180);
 }
 
 document.addEventListener("click", (event) => {

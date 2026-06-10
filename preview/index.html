@@ -63,8 +63,13 @@
             <div><strong>Rewrite the timeline</strong><small><b>7-day test:</b> Separate what you want from what you think is late.</small></div>
             <span class="option-check">✓</span>
           </div>
-          <div class="scenario-dots" aria-hidden="true">
-            <span class="is-active"></span><span></span><span></span><span></span><span></span><span></span>
+          <div class="scenario-dots" aria-label="Choose an example decision">
+            <button class="is-active" type="button" data-scenario-index="0" aria-label="Turning 30 example" aria-current="true"></button>
+            <button type="button" data-scenario-index="1" aria-label="Laid off example"></button>
+            <button type="button" data-scenario-index="2" aria-label="Graduating example"></button>
+            <button type="button" data-scenario-index="3" aria-label="Career change example"></button>
+            <button type="button" data-scenario-index="4" aria-label="Relationship change example"></button>
+            <button type="button" data-scenario-index="5" aria-label="General change example"></button>
           </div>
         </div>
       </div>
@@ -139,7 +144,23 @@
         <div class="screen-heading">
           <span class="step-kicker">Four possible directions</span>
           <h2>Where could you go from here?</h2>
-          <p id="lens-copy"></p>
+          <p>See how your decision and priority shape four ways forward.</p>
+        </div>
+        <div class="decision-flow" aria-label="How your directions were shaped">
+          <div class="flow-node">
+            <span>Your decision</span>
+            <strong id="flow-decision"></strong>
+          </div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-node priority">
+            <span>Your lens</span>
+            <strong id="flow-priority"></strong>
+          </div>
+          <span class="flow-arrow" aria-hidden="true">→</span>
+          <div class="flow-result">
+            <span>Four testable directions</span>
+            <small>Choose one. You are not choosing forever.</small>
+          </div>
         </div>
         <div class="life-grid" id="life-grid"></div>
         <div class="screen-actions">
@@ -188,9 +209,28 @@
 
       <section class="screen" data-screen="journey">
         <div class="screen-heading">
-          <span class="step-kicker">Your journey preview</span>
-          <h2>Your experiment is ready. The evidence comes next.</h2>
-          <p>This is how your private journey will grow after you try the experiment and record what actually happened.</p>
+          <span class="step-kicker">Your ongoing journey</span>
+          <h2>Try. Notice. Adjust.</h2>
+          <p>You can return after each small step. The system helps you learn and choose what comes next.</p>
+        </div>
+        <div class="companion-flow" aria-label="How the system supports your journey">
+          <div class="companion-step complete">
+            <span>1</span>
+            <strong>Try</strong>
+            <small>One small experiment</small>
+          </div>
+          <span aria-hidden="true">→</span>
+          <div class="companion-step pending">
+            <span>2</span>
+            <strong>Reflect</strong>
+            <small>Action · thought · feeling</small>
+          </div>
+          <span aria-hidden="true">→</span>
+          <div class="companion-step">
+            <span>3</span>
+            <strong>Adjust</strong>
+            <small>Your next experiment</small>
+          </div>
         </div>
         <div class="journey-grid">
           <article class="review-card">
@@ -220,9 +260,9 @@
         </div>
         <div class="share-preview">
           <div>
-            <span class="card-label">Optional sharing</span>
-            <h3>Ask for perspective, not applause</h3>
-            <p>Share a sanitized experiment update with someone who has lived a similar path.</p>
+            <span class="card-label">Optional</span>
+            <h3>Share for perspective</h3>
+            <p>Invite someone you trust into the journey.</p>
           </div>
           <button class="button button-secondary" id="share-demo">Preview share card</button>
         </div>
@@ -233,18 +273,61 @@
       </section>
     </section>
 
-    <section class="how-it-works">
+    <section class="how-it-works" aria-labelledby="how-title">
       <div class="section-heading">
         <span class="eyebrow">Why this is different</span>
-        <h2>Imagine your possible life<br>Build it one small step at a time</h2>
+        <h2 id="how-title">Explore possible lives.<br>Try one for real.</h2>
+        <p>You do not need a perfect answer. You need a small way to learn.</p>
       </div>
-      <div class="feature-grid">
-        <article><span>01</span><h3>Explore possible lives</h3><p>See directions shaped by your real situation and priorities.</p></article>
-        <article><span>02</span><h3>Plan the next step</h3><p>Let your Agent turn one direction into a small, realistic plan.</p></article>
-        <article><span>03</span><h3>Log and adjust</h3><p>Record what happened, reflect together, and shape what comes next.</p></article>
-        <article><span>04</span><h3>Share every little step</h3><p>Choose what to share with people navigating something similar.</p></article>
+      <div class="journey-rail" aria-hidden="true"><span></span></div>
+      <div class="feature-journey">
+        <article class="feature-card feature-explore">
+          <div class="feature-topline"><span>01</span><small>Explore</small></div>
+          <div class="feature-visual branching-visual" aria-hidden="true">
+            <span class="visual-origin"></span>
+            <span class="visual-path path-one"></span>
+            <span class="visual-path path-two"></span>
+            <span class="visual-path path-three"></span>
+            <span class="visual-path path-four"></span>
+          </div>
+          <h3>See more than one future</h3>
+          <p>Turn one crossroads into four distinct, testable directions.</p>
+          <strong class="feature-output">You get: possible paths</strong>
+        </article>
+        <article class="feature-card feature-test">
+          <div class="feature-topline"><span>02</span><small>Test</small></div>
+          <div class="feature-visual experiment-visual" aria-hidden="true">
+            <span class="mini-label">7-day test</span>
+            <strong>One real task</strong>
+            <div><i></i><i></i><i></i></div>
+          </div>
+          <h3>Try before you decide</h3>
+          <p>Convert a direction into one low-risk action in the real world.</p>
+          <strong class="feature-output">You get: one experiment</strong>
+        </article>
+        <article class="feature-card feature-learn">
+          <div class="feature-topline"><span>03</span><small>Learn</small></div>
+          <div class="feature-visual evidence-visual" aria-hidden="true">
+            <span>I did</span><span>I noticed</span><span>I felt</span>
+          </div>
+          <h3>Learn from what happened</h3>
+          <p>Separate observation from assumption and adjust the next step.</p>
+          <strong class="feature-output">You get: clearer evidence</strong>
+        </article>
+        <article class="feature-card feature-share">
+          <div class="feature-topline"><span>04</span><small>Share</small></div>
+          <div class="feature-visual people-visual" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <i></i><i></i>
+          </div>
+          <h3>Invite perspective</h3>
+          <p>Share only what helps, with someone you trust or who understands.</p>
+          <strong class="feature-output">You choose: private or shared</strong>
+        </article>
       </div>
-      <p class="feature-summary">Explore possible lives · Test one in real life</p>
+      <div class="feature-summary">
+        <span>Imagine</span><i>→</i><span>Try</span><i>→</i><span>Learn</span><i>→</i><span>Adjust</span>
+      </div>
     </section>
 
     <section class="pilot-cta">
@@ -309,16 +392,30 @@
   </footer>
 
   <script>
-    !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Xi tn init mn Qr yn xn pn capture calculateEventProperties Tn register register_once register_for_session unregister unregister_for_session Pn getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync On identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Mn Cn createPersonProfile setInternalOrTestUser Rn vn Fn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Sn debug Kr En getPageViewId captureTraceFeedback captureTraceMetric hn".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-    posthog.init("phc_qKSXSzpj7jpPXoUMtfNfKKWs7fFcUFTLoGdwZ5hPhWrf", {
-      api_host: "https://us.i.posthog.com",
-      defaults: "2026-05-30",
-      autocapture: false,
-      capture_pageview: false,
-      capture_pageleave: false,
-      disable_session_recording: true,
-      person_profiles: "never"
-    });
+    const analyticsParams = new URLSearchParams(window.location.search);
+    if (analyticsParams.get("analytics") === "off") {
+      localStorage.setItem("my-parallel-lives-analytics", "off");
+    }
+    if (analyticsParams.get("analytics") === "on") {
+      localStorage.removeItem("my-parallel-lives-analytics");
+    }
+
+    const analyticsDisabled =
+      localStorage.getItem("my-parallel-lives-analytics") === "off";
+    const isProduction = window.location.hostname === "gaofang86.github.io";
+
+    if (isProduction && !analyticsDisabled) {
+      !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Xi tn init mn Qr yn xn pn capture calculateEventProperties Tn register register_once register_for_session unregister unregister_for_session Pn getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync On identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Mn Cn createPersonProfile setInternalOrTestUser Rn vn Fn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Sn debug Kr En getPageViewId captureTraceFeedback captureTraceMetric hn".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+      posthog.init("phc_qKSXSzpj7jpPXoUMtfNfKKWs7fFcUFTLoGdwZ5hPhWrf", {
+        api_host: "https://us.i.posthog.com",
+        defaults: "2026-05-30",
+        autocapture: false,
+        capture_pageview: false,
+        capture_pageleave: false,
+        disable_session_recording: true,
+        person_profiles: "never"
+      });
+    }
   </script>
   <script src="app.js"></script>
 </body>
