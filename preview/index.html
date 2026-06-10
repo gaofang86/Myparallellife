@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Turn a life decision into a small, reversible experiment.">
+  <title>My Parallel Lives</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="My Parallel Lives home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 68 48">
+          <path class="logo-path" d="M4 39 C10 28 12 18 17 34 C22 48 25 9 31 31 C36 45 39 24 47 18"></path>
+          <path class="logo-flight" d="M43 23 C48 18 51 15 54 12"></path>
+          <circle class="logo-planet" cx="56" cy="10" r="7"></circle>
+          <ellipse class="logo-ring" cx="56" cy="10" rx="11" ry="4.5" transform="rotate(-24 56 10)"></ellipse>
+        </svg>
+      </span>
+      <span>My Parallel Lives</span>
+    </a>
+    <button class="button button-ghost" data-open-pilot>Join the waitlist</button>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1>
+        <span class="hero-line-context">Don’t choose forever</span>
+        <span class="hero-line-promise">Try one possible life</span>
+      </h1>
+      <p class="hero-copy">
+        Turn a life-changing decision into something small enough to try.
+      </p>
+      <div class="scenario-demo" aria-label="Example of exploring four possible directions and testing one">
+        <div class="scenario-copy">
+          <p class="scenario-want" id="scenario-want">I’m turning 30</p>
+          <p class="scenario-fear" id="scenario-fear">Am I already behind?</p>
+          <p class="scenario-question" id="scenario-question">What is small enough to test today?</p>
+        </div>
+        <div class="scenario-options">
+          <span class="scenario-label">Four possible directions</span>
+          <div class="direction-option is-active">
+            <span class="option-icon">01</span>
+            <div><strong>Deepen what I have</strong><small><b>7-day test:</b> Invest three focused sessions in one current priority.</small></div>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="direction-option">
+            <span class="option-icon">02</span>
+            <div><strong>Start a neglected dream</strong><small><b>7-day test:</b> Give one postponed goal two protected hours.</small></div>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="direction-option">
+            <span class="option-icon">03</span>
+            <div><strong>Change my environment</strong><small><b>7-day test:</b> Spend one ordinary day in a place you could move to.</small></div>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="direction-option">
+            <span class="option-icon">04</span>
+            <div><strong>Rewrite the timeline</strong><small><b>7-day test:</b> Separate what you want from what you think is late.</small></div>
+            <span class="option-check">✓</span>
+          </div>
+          <div class="scenario-dots" aria-hidden="true">
+            <span class="is-active"></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="button button-primary" data-start>Explore my options</button>
+        <button class="text-button" data-open-pilot>Meet others at a crossroads <span>→</span></button>
+      </div>
+      <div class="trust-row">
+        <span>No permanent choice</span>
+        <span>Private by default</span>
+        <span>One experiment at a time</span>
+      </div>
+    </section>
+
+    <section class="product-shell" id="preview" aria-live="polite">
+      <div class="shell-topbar">
+        <div>
+          <span class="status-dot"></span>
+          Explore mode
+        </div>
+        <span id="step-label">Step 1 of 5</span>
+      </div>
+
+      <div class="progress" aria-hidden="true">
+        <span class="progress-fill" id="progress-fill"></span>
+      </div>
+
+      <section class="screen active" data-screen="decision">
+        <div class="screen-heading">
+          <span class="step-kicker">Your crossroads</span>
+          <h2>What decision is taking up space in your mind?</h2>
+          <p>Write it as a real choice. It does not need to sound polished.</p>
+        </div>
+        <label class="field-label" for="decision-input">The decision I am facing</label>
+        <textarea id="decision-input" rows="4" placeholder="I know I need to change, but where do I begin?"></textarea>
+        <div class="example-row">
+          <button class="chip" data-example="I was laid off. What now?">I was laid off. What now?</button>
+          <button class="chip" data-example="I’m graduating with no direction.">I’m graduating with no direction.</button>
+          <button class="chip" data-example="I know I need to change. But where do I begin?">I need to change. Where do I begin?</button>
+        </div>
+        <div class="screen-actions end">
+          <button class="button button-primary" id="decision-next">Continue</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="priority">
+        <div class="screen-heading centered">
+          <span class="step-kicker">One quick question</span>
+          <h2>What matters most to you right now?</h2>
+          <p>There is no correct answer. Choose what feels most true in this moment.</p>
+        </div>
+        <div class="priority-grid">
+          <button class="priority-card" data-priority="Stability">
+            <strong>Stability</strong>
+            <span>Protect what I have</span>
+          </button>
+          <button class="priority-card" data-priority="Growth">
+            <strong>Growth</strong>
+            <span>Expand what is possible</span>
+          </button>
+          <button class="priority-card" data-priority="Freedom">
+            <strong>Freedom</strong>
+            <span>Gain more choice and autonomy</span>
+          </button>
+        </div>
+        <div class="screen-actions">
+          <button class="text-button" data-back="decision">← Back</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="lives">
+        <div class="screen-heading">
+          <span class="step-kicker">Four possible directions</span>
+          <h2>Where could you go from here?</h2>
+          <p id="lens-copy"></p>
+        </div>
+        <div class="life-grid" id="life-grid"></div>
+        <div class="screen-actions">
+          <button class="text-button" data-back="priority">← Change what matters</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="experiment">
+        <div class="experiment-layout">
+          <div>
+            <span class="step-kicker">Your 7-day experiment</span>
+            <h2 id="experiment-title">Test the path in real life</h2>
+            <p id="experiment-intro"></p>
+          </div>
+          <div class="lens-pill" id="lens-pill"></div>
+        </div>
+        <div class="experiment-card">
+          <span class="card-label">Do this within seven days</span>
+          <h3 id="experiment-action"></h3>
+          <div class="experiment-meta">
+            <div><span>Time</span><strong>30–60 min</strong></div>
+            <div><span>Cost</span><strong>Low</strong></div>
+            <div><span>Risk</span><strong>Reversible</strong></div>
+          </div>
+          <div class="test-question">
+            <span>What this tests</span>
+            <p id="experiment-question"></p>
+          </div>
+        </div>
+        <div class="log-preview">
+          <div>
+            <span class="card-label">After the experiment, record</span>
+            <h3>One action · One thought · One feeling</h3>
+          </div>
+          <div class="log-fields">
+            <span>I did...</span>
+            <span>I noticed...</span>
+            <span>I felt...</span>
+          </div>
+        </div>
+        <div class="screen-actions split">
+          <button class="text-button" data-back="lives">← Choose another life</button>
+          <button class="button button-primary" id="experiment-next">See the journey</button>
+        </div>
+      </section>
+
+      <section class="screen" data-screen="journey">
+        <div class="screen-heading">
+          <span class="step-kicker">A private evidence trail</span>
+          <h2>Clarity comes from what you learn, not what you predict</h2>
+          <p>Your Agent helps separate observation from interpretation, then adjusts the next experiment.</p>
+        </div>
+        <div class="journey-grid">
+          <article class="review-card">
+            <span class="card-label">Agent review</span>
+            <h3>What the evidence suggests</h3>
+            <p id="review-copy"></p>
+            <div class="recommendation">
+              <span>Recommendation</span>
+              <strong>Continue, with a smaller test</strong>
+            </div>
+          </article>
+          <article class="timeline-card">
+            <span class="card-label">Your journey</span>
+            <div class="timeline-item complete">
+              <span>1</span>
+              <div><strong>Direction chosen</strong><small id="timeline-direction"></small></div>
+            </div>
+            <div class="timeline-item complete">
+              <span>2</span>
+              <div><strong>First experiment</strong><small>Evidence collected in the real world</small></div>
+            </div>
+            <div class="timeline-item">
+              <span>3</span>
+              <div><strong>Next experiment</strong><small>Adjusted from what you learned</small></div>
+            </div>
+          </article>
+        </div>
+        <div class="share-preview">
+          <div>
+            <span class="card-label">Optional sharing</span>
+            <h3>Ask for perspective, not applause</h3>
+            <p>Share a sanitized experiment update with someone who has lived a similar path.</p>
+          </div>
+          <button class="button button-secondary" id="share-demo">Preview share card</button>
+        </div>
+        <div class="screen-actions split">
+          <button class="text-button" data-start>Start another decision</button>
+          <button class="button button-primary" data-open-pilot>Meet others at a crossroads</button>
+        </div>
+      </section>
+    </section>
+
+    <section class="how-it-works">
+      <div class="section-heading">
+        <span class="eyebrow">Why this is different</span>
+        <h2>Imagine your possible life<br>Build it one small step at a time</h2>
+      </div>
+      <div class="feature-grid">
+        <article><span>01</span><h3>Explore possible lives</h3><p>See directions shaped by your real situation and priorities.</p></article>
+        <article><span>02</span><h3>Plan the next step</h3><p>Let your Agent turn one direction into a small, realistic plan.</p></article>
+        <article><span>03</span><h3>Log and adjust</h3><p>Record what happened, reflect together, and shape what comes next.</p></article>
+        <article><span>04</span><h3>Share every little step</h3><p>Choose what to share with people navigating something similar.</p></article>
+      </div>
+      <p class="feature-summary">Explore possible lives · Test one in real life</p>
+    </section>
+
+    <section class="pilot-cta">
+      <span class="eyebrow">Meet others at a crossroads</span>
+      <h2>You’re not the only one figuring it out</h2>
+      <p>Connect with people exploring their next chapter through small, real-world experiments.</p>
+      <button class="button button-light" data-open-pilot>Meet others at a crossroads</button>
+    </section>
+  </main>
+
+  <dialog id="pilot-dialog">
+    <form id="pilot-form" action="https://formspree.io/f/xkoavnnq" method="POST">
+      <button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button>
+      <span class="eyebrow">Meet others at a crossroads</span>
+      <h2>Explore life decisions with people like you</h2>
+      <p>Tell us only what you are comfortable sharing.</p>
+      <label>What I’d like to be called
+        <input type="text" name="name" required autocomplete="name" placeholder="Name or nickname">
+      </label>
+      <label>Email
+        <input type="email" name="email" required autocomplete="email" placeholder="you@example.com">
+      </label>
+      <label>The decision you are facing
+        <textarea class="contact-decision" name="decision" rows="2" required placeholder="I am struggling to decide whether..."></textarea>
+      </label>
+      <fieldset class="interest-fieldset">
+        <legend>What parts of life does this touch?</legend>
+        <span class="field-help">Choose as many as fit.</span>
+        <div class="interest-grid">
+          <label class="interest-card"><input type="checkbox" name="areas" value="Career Growth"><span>Career Growth</span></label>
+          <label class="interest-card"><input type="checkbox" name="areas" value="Financial Security"><span>Financial Security</span></label>
+          <label class="interest-card"><input type="checkbox" name="areas" value="Freedom"><span>Freedom</span></label>
+          <label class="interest-card"><input type="checkbox" name="areas" value="Relationships"><span>Relationships</span></label>
+          <label class="interest-card"><input type="checkbox" name="areas" value="Health"><span>Health</span></label>
+          <label class="interest-card"><input type="checkbox" name="areas" value="Adventure"><span>Adventure</span></label>
+        </div>
+      </fieldset>
+      <button class="button button-primary full" type="submit">Meet others at a crossroads</button>
+      <div class="form-success" id="form-success" hidden>
+        Thanks — your note is on its way. We’ll be in touch.
+      </div>
+      <div class="form-error" id="form-error" hidden>
+        Something went wrong. Please try again.
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="share-dialog">
+    <div class="share-card">
+      <button class="dialog-close" type="button" data-close-share aria-label="Close">×</button>
+      <span class="card-label">My Parallel Life Experiment</span>
+      <h2 id="share-title"></h2>
+      <p id="share-decision"></p>
+      <div><strong>What I tested</strong><p id="share-action"></p></div>
+      <div><strong>What I want from sharing</strong><p>Perspective from someone who has tried a similar path.</p></div>
+    </div>
+  </dialog>
+
+  <footer>
+    <button class="footer-contact" type="button" data-open-pilot>My Parallel Lives · Contact</button>
+    <span>Private by default. Built for learning, not prediction.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
