@@ -14,7 +14,7 @@ window.addEventListener("pageshow", () => {
 });
 
 const screens = [...document.querySelectorAll(".screen")];
-const crossroadsMarquee = document.querySelector(".crossroads-marquee");
+const marqueeThemeRow = document.querySelector(".theme-row");
 const progress = document.querySelector("#progress-fill");
 const stepLabel = document.querySelector("#step-label");
 const stepMap = { decision: 1, priority: 2, lives: 3, experiment: 4, journey: 5 };
@@ -456,13 +456,14 @@ document.addEventListener("click", (event) => {
   const start = event.target.closest("[data-start]");
   if (start) {
     document.body.classList.remove("journey-focused");
+    document.body.classList.add("explore-framed");
     state.decision = "";
     state.priority = "";
     state.life = null;
     state.directions = [];
     document.querySelector("#decision-input").value = "";
     showScreen("decision", { scroll: false });
-    crossroadsMarquee.scrollIntoView({ behavior: "smooth", block: "start" });
+    marqueeThemeRow.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   const example = event.target.closest("[data-example]");
@@ -527,6 +528,7 @@ document.querySelector("#decision-next").addEventListener("click", () => {
     return;
   }
   state.decision = value;
+  document.body.classList.remove("explore-framed");
   document.body.classList.add("journey-focused");
   showScreen("priority");
 });

@@ -222,6 +222,7 @@ h1 { margin: 8px 0 12px; letter-spacing: -.055em; }
 .marquee-heading { width: min(1120px, calc(100% - 40px)); margin: 0 auto 24px; text-align: center; }
 .marquee-heading h2 { margin: 8px 0 0; font-size: clamp(25px, 3vw, 38px); letter-spacing: -.035em; }
 .marquee-row { width: 100%; overflow: hidden; mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent); }
+.theme-row { scroll-margin-top: 14px; }
 .marquee-row + .marquee-row { margin-top: 12px; }
 .marquee-track { width: max-content; display: flex; animation: marquee-left 42s linear infinite; }
 .marquee-track.reverse { animation-name: marquee-right; animation-duration: 48s; }
@@ -267,6 +268,13 @@ h1 { margin: 8px 0 12px; letter-spacing: -.055em; }
   box-shadow: 0 30px 90px rgba(31, 37, 65, .13);
 }
 .journey-focused .screen { padding-left: clamp(30px, 6vw, 82px); padding-right: clamp(30px, 6vw, 82px); }
+.explore-framed .product-shell { min-height: 0; }
+.explore-framed .screen[data-screen="decision"] { padding-top: 20px; padding-bottom: 22px; }
+.explore-framed .screen[data-screen="decision"] .screen-heading { margin-bottom: 12px; }
+.explore-framed .screen[data-screen="decision"] .screen-heading h2 { font-size: clamp(30px, 3.2vw, 38px); }
+.explore-framed .screen[data-screen="decision"] textarea { min-height: 88px; }
+.explore-framed .screen[data-screen="decision"] .example-row { margin-top: 8px; }
+.explore-framed .screen[data-screen="decision"] .screen-actions { margin-top: 14px; }
 .shell-topbar {
   padding: 15px 26px;
   display: flex;
@@ -620,6 +628,8 @@ footer { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 
   .hero-actions { align-items: flex-start; flex-direction: column; }
   .trust-row { gap: 10px; flex-direction: column; }
   .screen { padding: 38px 22px 44px; }
+  .explore-framed .screen[data-screen="decision"] { padding: 26px 22px 28px; }
+  .explore-framed .screen[data-screen="decision"] textarea { min-height: 96px; }
   .journey-focused .product-shell { width: calc(100% - 20px); border-radius: 22px; }
   .journey-focused .screen { padding-left: 22px; padding-right: 22px; }
   .priority-grid, .journey-grid, .feature-journey { grid-template-columns: 1fr; }
