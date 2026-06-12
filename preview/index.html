@@ -3,15 +3,638 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Turn a life decision into a small, reversible experiment.">
-  <title>My Parallel Lives</title>
+  <meta name="description" content="Turn one difficult decision into four testable directions and one real-world next step.">
+  <title>My Parallel Life — Turn a crossroads into something you can test</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20260610-8">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box}
+    *{margin:0}
+    :root{
+      --night:#120c06;--night-2:#1b1008;--paper:#f5ead0;--paper-2:#fffaf0;
+      --ink:#25160c;--cream:#f3dfbd;--dim:#ba9674;--muted:#806148;
+      --amber:#f28a18;--gold:#dbb234;--coral:#df6336;--rose:#bd5d57;
+      --line:rgba(244,220,183,.14);--shadow:0 34px 90px rgba(0,0,0,.32);
+    }
+    html{scroll-behavior:smooth}
+    body{
+      min-width:320px;overflow-x:hidden;background:var(--night);color:var(--cream);
+      font-family:"DM Sans",sans-serif;line-height:1.55;
+    }
+    body::after{
+      content:"";position:fixed;inset:0;z-index:100;pointer-events:none;opacity:.035;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitchTiles'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #ffd98a;outline-offset:4px}
+    .mono{font-family:"DM Mono",monospace;text-transform:uppercase;letter-spacing:.13em}
+    .serif{font-family:"Manrope",sans-serif}
+    .nav{
+      position:absolute;z-index:20;top:0;left:0;right:0;padding:24px clamp(20px,4vw,58px);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;color:#fff1d7;font-size:14px;
+      font-weight:700;letter-spacing:.03em;text-decoration:none;
+    }
+    .brand-mark{width:48px;height:34px;display:block;color:#fff1d7}
+    .brand-mark svg{width:100%;height:100%;overflow:visible}
+    .brand-mark path,.brand-mark circle,.brand-mark ellipse{
+      fill:none;stroke:currentColor;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;
+    }
+    .brand-mark .logo-flight{stroke:var(--amber);stroke-width:2.6}
+    .brand-mark .logo-planet{fill:var(--night);stroke:#fff1d7}
+    .brand-mark .logo-ring{stroke:var(--amber);stroke-width:2.4}
+    .nav-cta{
+      border:1px solid rgba(255,238,206,.25);border-radius:999px;background:rgba(18,12,6,.18);
+      color:#f5dfbc;padding:9px 15px;font-size:12px;backdrop-filter:blur(12px);
+    }
+
+    /* Hero */
+    .hero{
+      position:relative;min-height:100svh;overflow:hidden;background:#030407;
+    }
+    .hero-world{
+      position:absolute;inset:-2%;will-change:transform;transition:transform .35s ease-out;
+    }
+    .hero-world::before{
+      content:"";position:absolute;inset:0;
+      background:url("assets/ancient-cosmic-book.png") 67% 52%/cover no-repeat;
+      filter:saturate(.78) brightness(.78) contrast(1.08);transform:scale(1.035);
+    }
+    .hero-world::after{
+      content:"";position:absolute;inset:0;
+      background:
+        linear-gradient(90deg,rgba(2,3,6,.97) 0%,rgba(2,3,6,.91) 25%,rgba(2,3,6,.48) 46%,rgba(2,3,6,.05) 71%),
+        linear-gradient(0deg,rgba(2,3,6,.55),transparent 28%,transparent 75%,rgba(2,3,6,.36));
+    }
+    .hero-grain{
+      position:absolute;inset:0;z-index:1;opacity:.09;pointer-events:none;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+    }
+    .hero-dust{position:absolute;z-index:2;inset:0;pointer-events:none}
+    .hero-particle{
+      position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);
+      border-radius:50%;background:#ffd887;box-shadow:0 0 9px rgba(255,190,86,.75);
+      opacity:var(--o);animation:hero-drift var(--d) ease-in-out infinite alternate;
+    }
+    @keyframes hero-drift{to{transform:translate(var(--dx),var(--dy)) scale(.65);opacity:.18}}
+    .hero-copy{
+      position:relative;z-index:6;width:min(580px,42vw);padding-top:27vh;margin-left:5vw;
+    }
+    .kicker{
+      margin-bottom:24px;color:#eeb35f;font:500 11px "DM Mono";
+      letter-spacing:.17em;text-transform:uppercase;
+    }
+    h1{
+      font-family:"Manrope",sans-serif;font-size:clamp(54px,6.6vw,100px);font-weight:500;
+      line-height:.99;letter-spacing:-.06em;text-wrap:balance;
+    }
+    .hero-value{
+      margin-top:27px;max-width:520px;color:#f7e5c3;font-size:clamp(18px,1.55vw,23px);
+      font-weight:600;line-height:1.45;
+    }
+    .hero-hint{margin-top:10px;max-width:470px;color:#ae8f6e;font-size:14px;line-height:1.6}
+    .hero-action{margin-top:34px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+    .primary{
+      min-height:52px;border:0;border-radius:0;padding:0 24px;background:#f5e4c2;color:#24150c;
+      font-weight:700;box-shadow:0 12px 36px rgba(0,0,0,.28);transition:.25s ease;
+    }
+    .primary:hover{transform:translateY(-2px);background:#fff2d8;box-shadow:0 16px 42px rgba(0,0,0,.38)}
+    .action-note{color:#9e7a58;font:11px "DM Mono"}
+    .hero-futures{position:absolute;z-index:7;inset:0;pointer-events:none}
+    .future-chip{
+      position:absolute;width:clamp(230px,19vw,310px);padding:18px 20px;
+      border:1px solid rgba(242,174,72,.48);border-radius:13px;
+      background:
+        linear-gradient(135deg,rgba(45,26,12,.94),rgba(24,14,8,.88)),
+        rgba(18,12,6,.9);
+      color:#ecd1a9;backdrop-filter:blur(14px);box-shadow:0 18px 48px rgba(0,0,0,.42);
+      pointer-events:auto;text-align:left;opacity:.94;transform:scale(.98);
+      transition:opacity .35s,transform .45s,border-color .35s,background .35s,box-shadow .35s;
+    }
+    .future-chip:hover,.future-chip.is-active{
+      opacity:1;transform:translateY(-4px) scale(1);border-color:rgba(241,174,72,.75);
+      background:linear-gradient(135deg,rgba(94,54,20,.96),rgba(46,26,12,.94));
+      box-shadow:0 20px 55px rgba(0,0,0,.48),0 0 28px rgba(242,138,24,.17);
+    }
+    .future-chip strong{display:block;color:#fff2d4;font-size:16px;font-weight:700;line-height:1.3}
+    .future-chip span{display:block;margin-top:8px;color:#d1ae83;font-size:13px;line-height:1.5}
+    .future-chip em{display:inline-block;margin-right:9px;color:#f4b957;font:normal 11px "DM Mono"}
+    .future-chip:nth-child(1){left:54%;top:22%}
+    .future-chip:nth-child(2){left:74%;top:37%}
+    .future-chip:nth-child(3){left:57%;top:65%}
+    .future-chip:nth-child(4){left:77%;top:76%}
+    .hero.is-exploring .future-chip{opacity:1;transform:scale(1)}
+    .hero.is-exploring .future-chip:nth-child(1){transform:translate(-14px,-12px)}
+    .hero.is-exploring .future-chip:nth-child(2){transform:translate(18px,-8px)}
+    .hero.is-exploring .future-chip:nth-child(3){transform:translate(-12px,12px)}
+    .hero.is-exploring .future-chip:nth-child(4){transform:translate(15px,10px)}
+    .hero-route{
+      position:absolute;z-index:5;left:50%;top:52%;width:42%;height:1px;opacity:.35;
+      background:linear-gradient(90deg,transparent,#f2b358 45%,transparent);
+      filter:drop-shadow(0 0 7px #e79b31);transform:rotate(-7deg);transform-origin:left;
+    }
+    .hero-route::before,.hero-route::after{
+      content:"";position:absolute;left:52%;width:72%;height:1px;background:inherit;
+      filter:inherit;transform-origin:left;
+    }
+    .hero-route::before{transform:rotate(-19deg)}
+    .hero-route::after{transform:rotate(22deg)}
+    @media(max-width:900px){
+      .hero-world::before{background-position:61% 52%}
+      .hero-world::after{background:linear-gradient(0deg,rgba(2,3,6,.94),rgba(2,3,6,.62) 48%,rgba(2,3,6,.12))}
+      .hero-copy{width:auto;padding-top:48vh;margin:0 7vw}
+      .hero-copy h1{font-size:clamp(44px,10vw,72px)}
+      .hero-futures,.hero-route{display:none}
+      .hero{padding-bottom:64px}
+    }
+    @media(max-width:560px){
+      .hero-copy{padding-top:43vh;margin:0 22px}
+      .hero-action{align-items:flex-start;flex-direction:column;gap:12px}
+      .hero-world::before{background-position:60% center}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .hero-particle{animation:none}.hero-world{transition:none}
+    }
+
+    /* Moments */
+    .moments{
+      position:relative;padding:22px 0 28px;color:var(--ink);overflow:hidden;
+      background:linear-gradient(180deg,#f8efdd 0%,#faf2e3 58%,#fbf4e5 100%);
+    }
+    .moments::after{
+      content:"";position:absolute;left:0;right:0;bottom:-1px;height:34px;pointer-events:none;
+      background:linear-gradient(180deg,transparent,#fbf4e5);
+    }
+    .moments-title{
+      padding:0 20px 10px;text-align:center;color:#2b1a10;
+      font:500 clamp(20px,2.6vw,34px) "Manrope";line-height:1.25;
+    }
+    .marquee{position:relative;display:flex;overflow:hidden;margin-top:8px}
+    .marquee:first-child{margin-top:0}
+    .marquee::before,.marquee::after{
+      content:"";position:absolute;z-index:2;top:0;bottom:0;width:8vw;pointer-events:none;
+    }
+    .marquee::before{left:0;background:linear-gradient(90deg,#fbf4e5,transparent)}
+    .marquee::after{right:0;background:linear-gradient(-90deg,#fbf4e5,transparent)}
+    .marquee-track{display:flex;flex:none;gap:12px;width:max-content;padding-right:12px;animation:marquee 34s linear infinite}
+    .marquee.reverse .marquee-track{animation-direction:reverse;animation-duration:42s}
+    .marquee:hover .marquee-track,.marquee:focus-within .marquee-track{animation-play-state:paused}
+    .moment{
+      border:1px solid rgba(119,65,27,.18);border-radius:999px;background:rgba(255,255,255,.58);
+      color:#7b482c;padding:9px 16px;white-space:nowrap;font-weight:600;font-size:12px;
+    }
+    .moment.question{border-radius:10px;color:#513b31;font-weight:500;background:#f2e8dc}
+    .moment:hover{border-color:#bc6839;background:#fff}
+    @keyframes marquee{to{transform:translateX(-50%)}}
+
+    /* Scenario demo */
+    .scenario-demo{display:block;padding:82px clamp(20px,5vw,72px) 94px;background:#efe0c3;color:var(--ink)}
+    .demo-shell{
+      max-width:1180px;margin:auto;padding:clamp(30px,5vw,58px);border:1px solid rgba(124,70,31,.2);
+      background:
+        radial-gradient(circle at 5% 5%,rgba(242,138,24,.12),transparent 28%),
+        linear-gradient(145deg,#fff8e9,#f1dfbf);
+      box-shadow:0 34px 90px rgba(68,36,15,.14);
+    }
+    .demo-kicker{color:#a75329;font-size:10px}
+    .demo-shell h2{margin-top:15px;font:500 clamp(36px,4.8vw,62px) "Manrope";line-height:1.08;letter-spacing:-.045em}
+    .demo-options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:34px}
+    .demo-choice{
+      min-height:76px;border:1px solid rgba(103,61,31,.22);background:rgba(255,252,244,.62);
+      color:#4c3020;padding:18px 20px;text-align:left;font:600 17px "Manrope";transition:.25s ease;
+    }
+    .demo-choice:hover,.demo-choice[aria-pressed="true"]{
+      border-color:#c6662c;background:#f2d6ae;color:#783713;transform:translateY(-2px);
+      box-shadow:0 12px 26px rgba(102,55,23,.1);
+    }
+    .demo-response{
+      display:none;margin-top:28px;padding:25px;border-left:3px solid var(--coral);background:#fff8e9;
+    }
+    .demo-response.is-visible{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center}
+    .demo-response strong{display:block;color:#342014;font:500 clamp(20px,2vw,28px) "Manrope";line-height:1.4}
+    .demo-response p{margin-top:8px;color:#806148}
+    .forming{margin-top:15px;color:#a75329;font:10px "DM Mono";letter-spacing:.13em;text-transform:uppercase}
+    .demo-response button{max-width:360px;border:0;background:#2d1b10;color:#fff1dc;padding:15px 20px;font-weight:700}
+
+    /* Product ecosystem preview */
+    .ecosystem{padding:110px clamp(20px,5vw,72px) 120px;background:#120c06;color:var(--cream)}
+    .ecosystem-head{max-width:820px;margin:0 auto 58px;text-align:center}
+    .ecosystem-head span{color:var(--amber);font-size:10px}
+    .ecosystem-head h2{margin-top:14px;font:500 clamp(34px,4.6vw,62px) "Manrope";line-height:1.12}
+    .ecosystem-head p{max-width:680px;margin:17px auto 0;color:#ad896b}
+    .ecosystem-block{max-width:1180px;margin:18px auto 0;border:1px solid rgba(245,221,184,.13);background:#191008}
+    .ecosystem-label{color:var(--amber);font:10px "DM Mono";letter-spacing:.13em;text-transform:uppercase}
+    .commons{display:grid;grid-template-columns:1.16fr .84fr;min-height:570px}
+    .bubble-world{position:relative;min-height:570px;overflow:hidden;border-right:1px solid rgba(245,221,184,.12)}
+    .bubble-world::before{
+      content:"";position:absolute;inset:0;background:
+        radial-gradient(circle at 18% 20%,rgba(242,138,24,.16),transparent 27%),
+        radial-gradient(circle at 78% 72%,rgba(189,93,87,.13),transparent 30%);
+    }
+    .crossroad-bubble{
+      position:absolute;z-index:1;left:0;top:0;display:grid;place-items:center;border:1px solid var(--bubble-color);
+      border-radius:50%;background:color-mix(in srgb,var(--bubble-color) 11%,#171008);
+      color:#f6dfbd;padding:12px;text-align:center;font-weight:700;line-height:1.25;
+      box-shadow:0 0 28px color-mix(in srgb,var(--bubble-color) 18%,transparent);
+      transition:background .2s,box-shadow .2s;
+    }
+    .crossroad-bubble:hover,.crossroad-bubble[aria-pressed="true"]{
+      background:color-mix(in srgb,var(--bubble-color) 24%,#171008);
+      box-shadow:0 0 40px color-mix(in srgb,var(--bubble-color) 38%,transparent);
+    }
+    .community-panel{padding:clamp(28px,4vw,48px);display:flex;flex-direction:column}
+    .community-panel h3{margin-top:14px;font:500 clamp(26px,3vw,40px) "Manrope";line-height:1.2}
+    .community-meta{margin-top:8px;color:#90705a;font-size:12px}
+    .community-feed{display:grid;gap:10px;margin-top:26px}
+    .feed-item{padding:16px;border:1px solid rgba(245,221,184,.1);background:rgba(255,255,255,.025)}
+    .feed-item small{color:#d49b50;font:9px "DM Mono";letter-spacing:.1em;text-transform:uppercase}
+    .feed-item p{margin-top:7px;color:#d9bb96;font-size:14px;line-height:1.55}
+    .feed-actions{display:flex;gap:14px;margin-top:10px;color:#806149;font-size:11px}
+    .system-nudge{margin-top:auto;padding:16px;border-left:2px solid var(--amber);background:rgba(242,138,24,.07)}
+    .system-nudge strong{display:block;color:#f1c486;font-size:13px}
+    .system-nudge p{margin-top:5px;color:#a98567;font-size:12px}
+
+    .living-plan{padding:clamp(28px,4vw,52px)}
+    .plan-head{display:flex;align-items:end;justify-content:space-between;gap:30px}
+    .plan-head h3{margin-top:12px;font:500 clamp(27px,3.4vw,44px) "Manrope"}
+    .probability{text-align:right}
+    .probability strong{display:block;color:#f0bd6c;font:500 clamp(30px,4vw,48px) "Manrope"}
+    .probability span{color:#806149;font-size:11px}
+    .probability-track{height:5px;margin-top:25px;background:rgba(255,255,255,.08)}
+    .probability-fill{width:72%;height:100%;background:linear-gradient(90deg,var(--coral),var(--gold));transition:width .6s ease}
+    .plan-grid{display:grid;grid-template-columns:1fr .9fr;gap:16px;margin-top:28px}
+    .week-card,.adjustment-card{padding:24px;border:1px solid rgba(245,221,184,.12);background:rgba(255,255,255,.025)}
+    .week-card h4,.adjustment-card h4{color:#f2d5ae;font:600 18px "Manrope"}
+    .task-list{display:grid;gap:12px;margin-top:18px}
+    .task{display:flex;align-items:center;gap:12px;color:#ad896b;font-size:14px}
+    .task i{width:20px;height:20px;display:grid;place-items:center;border:1px solid #76553d;border-radius:50%;font:normal 10px "DM Mono"}
+    .task.done{color:#e0c29e}.task.done i{border-color:var(--gold);color:var(--gold)}
+    .adjustment-card{border-color:rgba(223,99,54,.3);background:rgba(223,99,54,.055)}
+    .adjustment-card p{margin-top:12px;color:#ad896b;line-height:1.65;font-size:14px}
+    .adjustment-card strong{color:#efbd87}
+    .simulate-miss{margin-top:20px;border:1px solid #c76631;background:transparent;color:#efc394;padding:12px 16px;font-weight:700}
+    .simulate-miss:hover{background:#a84822;color:#fff0d8}
+
+    .trail{padding:clamp(28px,4vw,52px)}
+    .trail h3{margin-top:12px;font:500 clamp(27px,3.4vw,44px) "Manrope"}
+    .trail-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:26px}
+    .trail-stat{padding:17px;border:1px solid rgba(245,221,184,.11);background:rgba(255,255,255,.022)}
+    .trail-stat strong{display:block;color:#f1c486;font:500 24px "Manrope"}
+    .trail-stat span{color:#806149;font-size:11px}
+    .trail-line{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:42px}
+    .trail-line::before{content:"";position:absolute;left:4%;right:4%;top:11px;height:1px;background:rgba(219,178,52,.28)}
+    .trail-event{position:relative;padding-top:35px}
+    .trail-event::before{
+      content:"";position:absolute;top:5px;left:0;width:13px;height:13px;border-radius:50%;
+      background:var(--event);box-shadow:0 0 18px var(--event);
+    }
+    .trail-event time{color:#806149;font:9px "DM Mono";text-transform:uppercase}
+    .trail-event strong{display:block;margin-top:7px;color:#e5c7a2;font-size:14px}
+    .trail-event p{margin-top:5px;color:#8f6d54;font-size:12px;line-height:1.5}
+
+    /* Crossroads input */
+    .crossroads-input{
+      position:relative;margin-top:-2px;padding:38px clamp(20px,6vw,90px) 58px;background:#fbf4e5;color:var(--ink);
+    }
+    .crossroads-input::before{
+      content:"";position:absolute;left:0;right:0;top:-38px;height:40px;pointer-events:none;
+      background:linear-gradient(180deg,rgba(251,244,229,0),#fbf4e5);
+    }
+    .crossroads-inner{max-width:1120px;margin:auto}
+    .crossroads-input .eyebrow{color:#a75329;font-size:10px}
+    .crossroads-input h2{
+      max-width:900px;margin-top:10px;font:500 clamp(36px,4.6vw,60px) "Manrope";
+      line-height:1.08;letter-spacing:-.045em;
+    }
+    .crossroads-lead{margin-top:10px;color:#806148;font-size:16px}
+    .decision-form{margin-top:26px}
+    .decision-form label{display:block;margin-bottom:12px;color:#3d2617;font-weight:700}
+    .decision-form textarea{
+      width:100%;min-height:118px;padding:20px;border:1px solid rgba(103,61,31,.24);
+      border-radius:8px;background:rgba(255,255,255,.58);color:#2d1b10;font-size:20px;
+      line-height:1.55;resize:vertical;outline:0;
+    }
+    .decision-form textarea:focus{border-color:#d37a24;box-shadow:0 0 0 4px rgba(242,138,24,.13)}
+    .decision-prompts{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+    .decision-prompt{
+      border:1px solid rgba(103,61,31,.18);border-radius:999px;background:#f3e7d3;
+      color:#76583f;padding:11px 16px;font-size:13px;font-weight:600;
+    }
+    .decision-prompt:hover{border-color:#c6662c;background:#fff8e9;color:#783713}
+    .decision-submit{
+      display:block;margin:22px 0 0 auto;min-height:52px;border:1px solid #d47728;border-radius:4px;
+      background:#a84822;color:#fff0d8;padding:0 28px;font-weight:700;box-shadow:0 14px 30px rgba(115,53,20,.18);
+    }
+    .decision-submit:hover{background:#c05b24;transform:translateY(-2px)}
+
+    /* Scroll fork */
+    .fork-scroll{position:relative;height:160vh;background:var(--night)}
+    .fork-sticky{position:sticky;top:0;height:100svh;overflow:hidden}
+    #beam-canvas{position:absolute;inset:0;width:100%;height:100%}
+    .fork-copy{
+      position:absolute;z-index:2;left:50%;bottom:10%;transform:translateX(-50%);
+      width:min(620px,calc(100% - 40px));text-align:center;
+    }
+    .fork-copy span{color:var(--amber);font-size:10px}
+    .fork-copy h2{margin-top:13px;font:500 clamp(25px,3.5vw,48px) "Manrope";line-height:1.3}
+    .fork-copy p{margin-top:14px;color:#a77f60}
+    .branch-label{
+      position:absolute;z-index:3;opacity:0;transform:translateY(8px);
+      font-size:12px;color:#ead0aa;transition:.3s ease;pointer-events:none;
+    }
+
+    /* Direction explorer */
+    .explorer{padding:112px clamp(20px,5vw,74px) 120px;background:#160d07}
+    .section-head{max-width:660px;margin:0 auto 66px;text-align:center}
+    .section-head span{color:var(--amber);font-size:10px}
+    .section-head h2{margin-top:13px;font:500 clamp(27px,3.5vw,46px) "Manrope";line-height:1.3}
+    .section-head p{margin-top:16px;color:#aa8567}
+    .explorer-shell{
+      max-width:1120px;margin:auto;display:grid;grid-template-columns:.76fr 1.24fr;min-height:520px;
+      border:1px solid rgba(245,221,184,.12);background:rgba(255,255,255,.018);box-shadow:var(--shadow);
+    }
+    .route-nav{padding:24px;border-right:1px solid rgba(245,221,184,.1);display:grid;align-content:start;gap:8px}
+    .route-btn{
+      --route:var(--amber);width:100%;min-height:78px;padding:14px;border:1px solid transparent;
+      background:transparent;color:#9b795e;display:grid;grid-template-columns:38px 1fr;gap:12px;
+      align-items:center;text-align:left;transition:.25s ease;
+    }
+    .route-btn:nth-child(2){--route:var(--gold)}
+    .route-btn:nth-child(3){--route:var(--coral)}
+    .route-btn:nth-child(4){--route:var(--rose)}
+    .route-btn:hover,.route-btn[aria-selected="true"]{
+      color:#ffe8c7;border-color:color-mix(in srgb,var(--route) 55%,transparent);
+      background:rgba(255,240,212,.045);transform:translateX(4px);
+    }
+    .route-btn .num{color:var(--route);font:500 11px "DM Mono"}
+    .route-btn strong{display:block;font:500 17px "Manrope";line-height:1.35}
+    .route-detail{
+      --active:#dbb234;position:relative;padding:clamp(32px,5vw,64px);overflow:hidden;
+      background:radial-gradient(circle at 90% 8%,color-mix(in srgb,var(--active) 12%,transparent),transparent 32%);
+    }
+    .route-detail::before{
+      content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:var(--active);
+      box-shadow:0 0 24px var(--active);
+    }
+    .detail-tag{color:var(--active);font-size:10px}
+    .detail-title{margin-top:14px;font:500 clamp(27px,3vw,40px) "Manrope"}
+    .detail-question{
+      margin-top:26px;padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+      font:500 clamp(19px,2vw,27px) "Manrope";line-height:1.5;color:#f3dfbd;
+    }
+    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:28px}
+    .detail-block label{display:block;margin-bottom:8px;color:#816047;font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .detail-block p{color:#b99576;font-size:14px;line-height:1.75}
+    .sample-strip{
+      margin-top:32px;padding:17px 19px;border:1px solid color-mix(in srgb,var(--active) 34%,transparent);
+      background:color-mix(in srgb,var(--active) 7%,transparent);
+    }
+    .sample-strip label{display:block;color:var(--active);font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .sample-strip p{margin-top:7px;color:#efd3ac}
+
+    /* Evidence */
+    .evidence{
+      position:relative;padding:140px 20px;text-align:center;background:#0d0804;overflow:hidden;
+    }
+    .evidence::before{
+      content:"";position:absolute;left:50%;top:0;width:1px;height:84px;background:linear-gradient(var(--gold),transparent);
+      box-shadow:0 0 20px var(--gold);
+    }
+    .evidence span{color:var(--gold);font-size:10px}
+    .evidence h2{margin-top:20px;font:500 clamp(28px,4vw,54px) "Manrope";line-height:1.3}
+    .evidence-question{
+      max-width:780px;margin:50px auto 0;padding:32px;border-top:1px solid rgba(219,178,52,.25);
+      border-bottom:1px solid rgba(219,178,52,.25);color:#e9cda5;
+      font:400 clamp(20px,2.5vw,34px) "Manrope";line-height:1.5;
+    }
+    .evidence p{max-width:620px;margin:28px auto 0;color:#9f795b}
+
+    /* Experiment and CTA */
+    .reality{
+      padding:118px 20px 130px;background:linear-gradient(#0d0804 0%,#251307 20%,#d9c29a 66%,var(--paper) 100%);
+    }
+    .reality-head{text-align:center;max-width:680px;margin:0 auto 62px}
+    .reality-head span{color:#d3a659;font-size:10px}
+    .reality-head h2{margin-top:15px;font:500 clamp(29px,4vw,50px) "Manrope"}
+    .reality-head p{margin-top:14px;color:#b58c68}
+    .experiment-card{
+      max-width:700px;margin:auto;overflow:hidden;background:var(--paper-2);color:var(--ink);
+      border:1px solid rgba(93,52,21,.16);box-shadow:0 40px 100px rgba(0,0,0,.3);
+    }
+    .experiment-head{
+      padding:21px 30px;display:flex;align-items:center;justify-content:space-between;
+      background:#efe0c3;border-top:3px solid var(--gold);border-bottom:1px solid rgba(93,52,21,.12);
+    }
+    .experiment-head span:first-child{color:#9a5028;font:500 10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .experiment-head span:last-child{color:#87684f;font:11px "DM Mono"}
+    .experiment-body{padding:34px}
+    .exp-row{padding:0 0 25px;margin-bottom:25px;border-bottom:1px solid rgba(93,52,21,.1)}
+    .exp-row label,.signal label{display:block;margin-bottom:8px;color:#936f53;font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .exp-row p{font:500 18px "Manrope";line-height:1.55}
+    .signal{padding:19px;background:rgba(183,83,37,.07);border:1px solid rgba(183,83,37,.14)}
+    .signal label{color:#a94d24}
+    .signal p{color:#533522}
+    .experiment-meta{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid rgba(93,52,21,.12)}
+    .meta{padding:18px;text-align:center;border-right:1px solid rgba(93,52,21,.12)}
+    .meta:last-child{border:0}
+    .meta strong{display:block;color:#a24c25;font:500 13px "DM Mono"}
+    .meta span{font-size:11px;color:#8c705b}
+    .experiment-note{max-width:620px;margin:25px auto 0;text-align:center;color:#81664f;font-size:13px}
+    .cta{padding:108px 20px 120px;background:var(--paper);color:var(--ink);text-align:center}
+    .cta h2{font:500 clamp(29px,4vw,52px) "Manrope";line-height:1.3}
+    .cta p{margin:18px auto 38px;max-width:590px;color:#745842}
+    .pilot-form{display:flex;gap:10px;max-width:470px;margin:auto}
+    .pilot-form input{
+      min-width:0;flex:1;border:1px solid rgba(91,50,21,.25);background:rgba(255,255,255,.4);
+      padding:14px 16px;color:var(--ink);border-radius:3px;
+    }
+    .pilot-form button{border:0;border-radius:3px;background:#a84822;color:#fff0d8;padding:14px 22px;font-weight:700}
+    .pilot-note{font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase;color:#a08368!important}
+    .success{display:none;margin-top:22px;color:#81401f}
+
+    /* Early access modal */
+    body.modal-open{overflow:hidden}
+    .access-modal{
+      position:fixed;z-index:200;inset:0;display:grid;place-items:center;padding:24px;
+      background:rgba(8,5,3,.82);backdrop-filter:blur(12px) saturate(.7);
+      opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s ease;
+    }
+    .access-modal.is-open{opacity:1;visibility:visible}
+    .access-dialog{
+      position:relative;width:min(760px,100%);max-height:calc(100svh - 48px);overflow:auto;
+      border:1px solid rgba(226,169,81,.42);border-radius:20px;color:var(--ink);
+      background:
+        radial-gradient(circle at 95% 0%,rgba(242,138,24,.13),transparent 29%),
+        linear-gradient(145deg,#fff8e9,#f2e2c5);
+      padding:clamp(30px,5vw,54px);box-shadow:0 34px 110px rgba(0,0,0,.58),0 0 60px rgba(213,133,39,.09);
+      transform:translateY(18px) scale(.985);
+      transition:transform .25s ease;
+    }
+    .access-modal.is-open .access-dialog{transform:none}
+    .modal-close{
+      position:absolute;right:24px;top:22px;width:42px;height:42px;border:0;border-radius:50%;
+      background:rgba(80,45,20,.08);color:#5c351d;font-size:25px;line-height:1;
+      transition:.2s ease;
+    }
+    .modal-close:hover{background:#a84822;color:#fff4df;transform:rotate(4deg)}
+    .modal-kicker{color:#ad572a;font:500 11px "DM Mono";letter-spacing:.16em;text-transform:uppercase}
+    .access-dialog h2{
+      max-width:650px;margin-top:15px;color:#2b190e;font:500 clamp(34px,5vw,54px) "Manrope";
+      line-height:1.12;letter-spacing:-.045em;
+    }
+    .modal-intro{margin-top:18px;color:#806148;font-size:clamp(16px,2vw,19px)}
+    .access-form{margin-top:34px}
+    .field{display:grid;gap:9px;margin-top:22px}
+    .field:first-child{margin-top:0}
+    .field label,.life-areas legend{color:#3b2415;font-size:15px;font-weight:700}
+    .field input,.field textarea{
+      width:100%;border:1px solid rgba(103,61,31,.24);border-radius:8px;background:rgba(255,252,244,.7);
+      padding:16px 18px;color:#2d1b10;outline:0;transition:border-color .2s,box-shadow .2s,background .2s;
+    }
+    .field input::placeholder,.field textarea::placeholder{color:#9a7c62}
+    .field input{min-height:58px}
+    .field textarea{min-height:116px;resize:vertical;line-height:1.5}
+    .field input:focus,.field textarea:focus{
+      border-color:#d37a24;background:#fffaf0;box-shadow:0 0 0 4px rgba(242,138,24,.13);
+    }
+    .life-areas{margin-top:28px;border:0}
+    .life-areas legend{padding:0}
+    .areas-help{margin-top:6px;color:#8b6b52;font-size:14px}
+    .area-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+    .area-option{position:relative}
+    .area-option input{position:absolute;opacity:0;pointer-events:none}
+    .area-option span{
+      min-height:54px;display:flex;align-items:center;border:1px solid rgba(103,61,31,.2);border-radius:8px;
+      background:rgba(255,250,240,.55);color:#76583f;padding:12px 16px;font-weight:700;transition:.2s ease;
+    }
+    .area-option span:hover{border-color:#cf792d;background:#fff8e9}
+    .area-option input:checked+span{
+      border-color:#c6662c;background:#f2d6ae;color:#783713;box-shadow:inset 0 0 0 1px #c6662c;
+    }
+    .area-option input:focus-visible+span{outline:2px solid #d37a24;outline-offset:3px}
+    .modal-submit{
+      width:100%;min-height:60px;margin-top:28px;border:1px solid #d47728;border-radius:6px;
+      background:linear-gradient(135deg,#ba5524,#d97929);color:#fff2dc;font-size:17px;font-weight:700;
+      box-shadow:0 15px 34px rgba(131,61,22,.23);transition:.2s ease;
+    }
+    .modal-submit:hover{background:linear-gradient(135deg,#a84822,#c96924);transform:translateY(-2px)}
+    .modal-success{display:none;padding:70px 10px;text-align:center}
+    .modal-success h3{color:#2b190e;font:500 clamp(30px,5vw,48px) "Manrope";letter-spacing:-.04em}
+    .modal-success p{margin-top:14px;color:#806148;font-size:18px}
+
+    .reveal{opacity:0;transform:translateY(18px);transition:.75s ease}
+    .reveal.visible{opacity:1;transform:none}
+
+    /* Parallel lives payoff */
+    .lives-section{padding:112px clamp(20px,4vw,58px) 120px;background:#130c07}
+    .lives-intro{max-width:780px;margin:0 auto 58px;text-align:center}
+    .lives-intro span{color:var(--amber);font-size:10px}
+    .lives-intro h2{margin-top:14px;font:500 clamp(30px,4vw,54px) "Manrope";line-height:1.2}
+    .lives-intro p{margin:18px auto 0;max-width:620px;color:#b58d6c;font-size:16px}
+    .lives-context{
+      max-width:1120px;margin:0 auto 24px;padding:18px 22px;display:flex;justify-content:space-between;gap:20px;
+      border:1px solid rgba(244,220,183,.12);color:#c9a37d;background:rgba(255,255,255,.025);
+    }
+    .lives-context strong{color:#f5dfbc;font-weight:600}
+    .life-grid{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .life-card{
+      --route:var(--amber);position:relative;min-height:390px;padding:24px 22px;display:flex;flex-direction:column;
+      border:1px solid rgba(244,220,183,.12);background:linear-gradient(160deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+      color:#b89576;text-align:left;transition:.3s ease;overflow:hidden;
+    }
+    .life-card:nth-child(2){--route:var(--gold)}.life-card:nth-child(3){--route:var(--coral)}.life-card:nth-child(4){--route:var(--rose)}
+    .life-card::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--route);box-shadow:0 0 24px var(--route)}
+    .life-card:hover,.life-card[aria-selected="true"]{transform:translateY(-6px);border-color:color-mix(in srgb,var(--route) 55%,transparent);background:color-mix(in srgb,var(--route) 7%,#160e08)}
+    .life-number{color:var(--route);font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .life-card h3{margin-top:20px;color:#f5dfbd;font:500 21px "Manrope";line-height:1.3}
+    .life-time{margin-top:22px;color:#7f5e46;font:10px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .life-snapshot{margin-top:8px;color:#e2c29d;font-size:15px;line-height:1.65}
+    .life-balance{margin-top:auto;padding-top:22px;display:grid;gap:12px}
+    .life-balance div{padding-top:12px;border-top:1px solid rgba(244,220,183,.09)}
+    .life-balance label{display:block;color:#785a44;font:9px "DM Mono";letter-spacing:.11em;text-transform:uppercase}
+    .life-balance p{margin-top:5px;font-size:13px;line-height:1.55}
+    .life-open{margin-top:20px;color:var(--route);font-size:12px;font-weight:700}
+    .life-payoff{
+      max-width:1120px;margin:14px auto 0;padding:30px;display:grid;grid-template-columns:1.1fr .9fr;gap:34px;
+      border:1px solid rgba(244,220,183,.13);background:rgba(255,255,255,.025);
+    }
+    .payoff-label{color:var(--gold);font-size:10px}
+    .payoff-question{margin-top:12px;color:#f0d7b2;font:500 clamp(20px,2vw,29px) "Manrope";line-height:1.45}
+    .payoff-test{padding-left:30px;border-left:1px solid rgba(244,220,183,.12)}
+    .payoff-test label{color:#8b6750;font:9px "DM Mono";letter-spacing:.12em;text-transform:uppercase}
+    .payoff-test p{margin-top:9px;color:#d2ad88;line-height:1.65}
+
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr;padding-top:128px}
+      .hero-copy{max-width:760px;text-align:center;margin:auto}
+      .hero-action{justify-content:center}
+      .hero-beam{right:0;top:38%}
+      .scenario-stage{width:min(700px,100%);margin:auto}
+      .explorer-shell{grid-template-columns:1fr}
+      .route-nav{grid-template-columns:repeat(4,1fr);border-right:0;border-bottom:1px solid var(--line);overflow-x:auto}
+      .route-btn{min-width:150px}
+      .life-grid{grid-template-columns:repeat(2,1fr)}
+      .demo-response.is-visible{grid-template-columns:1fr}
+      .demo-response button{max-width:none;width:100%}
+      .commons,.plan-grid{grid-template-columns:1fr}
+      .bubble-world{min-height:430px;border-right:0;border-bottom:1px solid rgba(245,221,184,.12)}
+      .community-panel{min-height:520px}
+      .trail-summary,.trail-line{grid-template-columns:repeat(2,1fr)}
+      .trail-line::before{display:none}
+    }
+    @media(max-width:620px){
+      .nav{padding:18px 20px}.nav-cta{display:none}
+      .hero{padding:105px 18px 60px;gap:34px}
+      h1{font-size:39px}.hero-value{font-size:16px}
+      .scenario-card{padding:20px;border-radius:20px}
+      .scenario-question{min-height:104px}
+      .direction-row{grid-template-columns:32px 1fr auto;padding:9px}
+      .moment{font-size:13px;padding:11px 16px}
+      .fork-copy{bottom:8%}
+      .explorer{padding:86px 18px}
+      .route-nav{padding:14px}
+      .route-detail{padding:30px 22px}
+      .detail-grid{grid-template-columns:1fr;gap:20px}
+      .evidence{padding:110px 18px}
+      .evidence-question{padding:25px 4px}
+      .reality{padding:90px 14px 105px}
+      .experiment-body{padding:25px 20px}
+      .experiment-head{padding:18px 20px}
+      .experiment-meta{grid-template-columns:1fr}
+      .meta{border-right:0;border-bottom:1px solid rgba(93,52,21,.12)}
+      .pilot-form{flex-direction:column}
+      .demo-shell{padding:28px 20px}
+      .demo-options{grid-template-columns:1fr}
+      .demo-response.is-visible{grid-template-columns:1fr}
+      .demo-response button{width:100%}
+      .crossroads-input{padding:46px 20px 58px}
+      .decision-form textarea{min-height:118px;font-size:17px}
+      .decision-submit{width:100%}
+      .access-modal{padding:12px}
+      .access-dialog{max-height:calc(100svh - 24px);padding:32px 22px;border-radius:24px}
+      .modal-close{right:16px;top:15px}
+      .access-dialog h2{padding-right:28px;font-size:34px}
+      .area-grid{grid-template-columns:1fr}
+      .life-grid{grid-template-columns:1fr}
+      .life-card{min-height:330px}
+      .life-payoff{grid-template-columns:1fr}
+      .payoff-test{padding:24px 0 0;border-left:0;border-top:1px solid rgba(244,220,183,.12)}
+      .lives-context{flex-direction:column}
+    }
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      .marquee{overflow-x:auto}.marquee-track{animation:none}
+      .reveal{opacity:1;transform:none;transition:none}
+      .direction-row,.route-btn{transition:none}
+    }
+  </style>
 </head>
 <body>
-  <header class="site-header">
+  <nav class="nav">
     <a class="brand" href="#top" aria-label="My Parallel Lives home">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 68 48">
@@ -23,463 +646,798 @@
       </span>
       <span>My Parallel Lives</span>
     </a>
-    <button class="button button-ghost" data-open-pilot>Join the waitlist</button>
-  </header>
+    <button class="nav-cta" data-open-access>Get early access</button>
+  </nav>
 
-  <main id="top">
-    <section class="hero">
-      <h1>
-        <span class="hero-line-context">Don’t choose forever</span>
-        <span class="hero-line-promise">Try one possible life</span>
-      </h1>
-      <p class="hero-copy">
-        Turn a life-changing decision into something small enough to try.
-      </p>
-      <div class="scenario-demo" aria-label="Example of exploring four possible directions and testing one">
-        <div class="scenario-copy">
-          <p class="scenario-want" id="scenario-want">I’m turning 30</p>
-          <p class="scenario-fear" id="scenario-fear">Am I already behind?</p>
-          <p class="scenario-question" id="scenario-question">What is small enough to test today?</p>
-        </div>
-        <div class="scenario-options">
-          <span class="scenario-label">Four possible directions</span>
-          <div class="direction-option is-active">
-            <span class="option-icon">01</span>
-            <div><strong>Deepen what I have</strong><small><b>7-day test:</b> Invest three focused sessions in one current priority.</small></div>
-            <span class="option-check">✓</span>
-          </div>
-          <div class="direction-option">
-            <span class="option-icon">02</span>
-            <div><strong>Start a neglected dream</strong><small><b>7-day test:</b> Give one postponed goal two protected hours.</small></div>
-            <span class="option-check">✓</span>
-          </div>
-          <div class="direction-option">
-            <span class="option-icon">03</span>
-            <div><strong>Change my environment</strong><small><b>7-day test:</b> Spend one ordinary day in a place you could move to.</small></div>
-            <span class="option-check">✓</span>
-          </div>
-          <div class="direction-option">
-            <span class="option-icon">04</span>
-            <div><strong>Rewrite the timeline</strong><small><b>7-day test:</b> Separate what you want from what you think is late.</small></div>
-            <span class="option-check">✓</span>
-          </div>
-          <div class="scenario-dots" aria-label="Choose an example decision">
-            <button class="is-active" type="button" data-scenario-index="0" aria-label="Turning 30 example" aria-current="true"></button>
-            <button type="button" data-scenario-index="1" aria-label="Laid off example"></button>
-            <button type="button" data-scenario-index="2" aria-label="Graduating example"></button>
-            <button type="button" data-scenario-index="3" aria-label="Career change example"></button>
-            <button type="button" data-scenario-index="4" aria-label="Relationship change example"></button>
-            <button type="button" data-scenario-index="5" aria-label="General change example"></button>
-          </div>
+  <main>
+    <section class="hero" id="top">
+      <div class="hero-world" id="hero-world"></div>
+      <div class="hero-grain"></div>
+      <div class="hero-dust" id="hero-dust"></div>
+      <div class="hero-copy">
+        <p class="kicker">One decision · Four things to test</p>
+        <h1>Still stuck at a crossroads?</h1>
+        <p class="hero-value">Turn one decision into four experiments.</p>
+        <p class="hero-hint">One year from now, four futures are waiting for you. Which one becomes your reality?</p>
+        <div class="hero-action">
+          <button class="primary" id="hero-explore" data-scroll="#moments">Start my first experiment</button>
+          <span class="action-note">Four futures · one reality test</span>
         </div>
       </div>
-      <div class="hero-actions">
-        <button class="button button-primary" data-start>Explore my options</button>
-        <button class="text-button" data-open-pilot>Meet others at a crossroads <span>→</span></button>
+      <div class="hero-route" aria-hidden="true"></div>
+      <section class="hero-futures" id="hero-futures" aria-label="Four possible futures"></section>
+    </section>
+
+    <section class="moments" id="moments">
+      <h2 class="moments-title">Wherever the crossroads is, the uncertainty feels familiar.</h2>
+      <div class="marquee" aria-label="Common life crossroads">
+        <div class="marquee-track" id="scene-marquee"></div>
       </div>
-      <div class="trust-row">
-        <span>No permanent choice</span>
-        <span>Private by default</span>
-        <span>One experiment at a time</span>
+      <div class="marquee reverse" aria-label="Questions people carry">
+        <div class="marquee-track" id="question-marquee"></div>
       </div>
     </section>
 
-    <section class="crossroads-marquee" aria-labelledby="crossroads-title">
-      <div class="marquee-heading">
-        <span class="eyebrow">Different lives, familiar questions</span>
-        <h2 id="crossroads-title">People arrive at all kinds of crossroads</h2>
+    <section class="crossroads-input" id="your-crossroads">
+      <div class="crossroads-inner reveal">
+        <span class="eyebrow mono">Your crossroads</span>
+        <h2>What's on your mind?</h2>
+        <p class="crossroads-lead">Write it as a real choice. It does not need to sound polished.</p>
+        <form class="decision-form" id="decision-form">
+          <label for="decision-text">The decision I am facing</label>
+          <textarea id="decision-text" required placeholder="I’m graduating with no direction."></textarea>
+          <div class="decision-prompts" id="decision-prompts"></div>
+          <button class="decision-submit" type="submit">Show me four directions</button>
+        </form>
       </div>
-      <div class="marquee-row theme-row">
-        <div class="marquee-track">
-          <div class="marquee-group">
-            <span>Career change</span><span>Moving abroad</span><span>Starting over at 30</span>
-            <span>Going back to school</span><span>Building something of my own</span>
-            <span>Choosing stability</span><span>Recovering from burnout</span><span>Returning home</span>
+    </section>
+
+    <section class="scenario-demo" id="scenario-demo" aria-hidden="false">
+      <div class="demo-shell">
+        <span class="demo-kicker mono">One question · four ways to begin</span>
+        <h2>What are you most ready to test?</h2>
+        <div class="demo-options" id="demo-options"></div>
+        <div class="demo-response" id="demo-response" role="status">
+          <div>
+            <strong id="demo-response-title"></strong>
+            <p id="demo-response-copy"></p>
+            <div class="forming">Four directions are taking shape...</div>
           </div>
-          <div class="marquee-group" aria-hidden="true">
-            <span>Career change</span><span>Moving abroad</span><span>Starting over at 30</span>
-            <span>Going back to school</span><span>Building something of my own</span>
-            <span>Choosing stability</span><span>Recovering from burnout</span><span>Returning home</span>
-          </div>
-        </div>
-      </div>
-      <div class="marquee-row question-row">
-        <div class="marquee-track reverse">
-          <div class="marquee-group">
-            <span>“Am I already behind?”</span><span>“Do I want the work or just the identity?”</span>
-            <span>“Can I test this without quitting?”</span><span>“What am I afraid to lose?”</span>
-            <span>“What would I choose without the deadline?”</span><span>“Does the ordinary life fit me?”</span>
-          </div>
-          <div class="marquee-group" aria-hidden="true">
-            <span>“Am I already behind?”</span><span>“Do I want the work or just the identity?”</span>
-            <span>“Can I test this without quitting?”</span><span>“What am I afraid to lose?”</span>
-            <span>“What would I choose without the deadline?”</span><span>“Does the ordinary life fit me?”</span>
-          </div>
+          <button type="button" data-open-access>See how this could work for my crossroads</button>
         </div>
       </div>
     </section>
 
-    <section class="product-shell" id="preview" aria-live="polite">
-      <div class="shell-topbar">
+    <section class="ecosystem" id="ecosystem">
+      <header class="ecosystem-head reveal">
+        <span class="mono">Beyond choosing a direction</span>
+        <h2>A plan that lives with you.</h2>
+        <p>Find people at the same crossroads, stay accountable without performing progress, and keep a record of how your decisions actually changed.</p>
+      </header>
+
+      <section class="ecosystem-block commons reveal">
+        <div class="bubble-world" id="bubble-world" aria-label="Crossroads communities"></div>
+        <aside class="community-panel">
+          <span class="ecosystem-label">Crossroads commons</span>
+          <h3 id="community-title">Career change without quitting</h3>
+          <p class="community-meta" id="community-meta">12,480 people · 326 active experiments this week</p>
+          <div class="community-feed" id="community-feed"></div>
+          <div class="system-nudge">
+            <strong>Your plan can check in even when you do not post.</strong>
+            <p>Private progress stays private. The system still notices missed actions, asks what changed, and adjusts what comes next.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="ecosystem-block living-plan reveal">
+        <div class="plan-head">
+          <div>
+            <span class="ecosystem-label">Living plan</span>
+            <h3>The plan changes when real life does.</h3>
+          </div>
+          <div class="probability"><strong id="plan-probability">72%</strong><span>estimated chance of reaching this milestone</span></div>
+        </div>
+        <div class="probability-track"><div class="probability-fill" id="probability-fill"></div></div>
+        <div class="plan-grid">
+          <article class="week-card">
+            <h4>This week · Test a new work direction</h4>
+            <div class="task-list" id="task-list">
+              <div class="task done"><i>✓</i><span>Choose one realistic task from the target role</span></div>
+              <div class="task"><i>2</i><span>Complete a 90-minute first attempt</span></div>
+              <div class="task"><i>3</i><span>Ask one practitioner for feedback</span></div>
+            </div>
+            <button class="simulate-miss" id="simulate-miss" type="button">Simulate a missed day</button>
+          </article>
+          <article class="adjustment-card">
+            <span class="ecosystem-label">System check-in</span>
+            <h4 id="adjustment-title">Your plan is still on track.</h4>
+            <p id="adjustment-copy">You completed the setup step. The next action stays small enough to fit inside this week.</p>
+            <p><strong id="adjustment-action">Next adjustment:</strong> Keep the 90-minute task scheduled for Thursday.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="ecosystem-block trail reveal">
+        <span class="ecosystem-label">Your trail</span>
+        <h3>Not a perfect streak. A record of how you changed.</h3>
+        <div class="trail-summary">
+          <div class="trail-stat"><strong>18</strong><span>experiments completed</span></div>
+          <div class="trail-stat"><strong>6</strong><span>plans adapted</span></div>
+          <div class="trail-stat"><strong>3</strong><span>goals consciously released</span></div>
+          <div class="trail-stat"><strong>81%</strong><span>follow-through after adjustment</span></div>
+        </div>
+        <div class="trail-line">
+          <article class="trail-event" style="--event:#dbb234"><time>Feb 08</time><strong>You began</strong><p>Tested whether independent work felt energizing.</p></article>
+          <article class="trail-event" style="--event:#df6336"><time>Mar 02</time><strong>You paused</strong><p>Workload rose. The plan reduced from three tasks to one.</p></article>
+          <article class="trail-event" style="--event:#bd5d57"><time>Apr 19</time><strong>You let go</strong><p>Dropped a goal that looked good but never felt worth repeating.</p></article>
+          <article class="trail-event" style="--event:#f28a18"><time>Jun 11</time><strong>You changed direction</strong><p>Chose a smaller path with stronger evidence and better follow-through.</p></article>
+        </div>
+      </section>
+    </section>
+
+    <section class="lives-section" id="lives">
+      <header class="lives-intro reveal">
+        <span class="mono">One crossroads · four lived outcomes</span>
+        <h2>What changes when each path becomes ordinary life?</h2>
+        <p>Not a list of advice. Four grounded snapshots of what the choice could feel like after the excitement wears off.</p>
+      </header>
+      <div class="lives-context reveal">
+        <span>The crossroads</span>
+        <strong id="lives-crossroads"></strong>
+      </div>
+      <div class="life-grid reveal" id="life-grid" role="tablist" aria-label="Four possible lives"></div>
+      <div class="life-payoff reveal">
         <div>
-          <span class="status-dot"></span>
-          Explore mode
+          <span class="payoff-label mono">The question this life leaves open</span>
+          <p class="payoff-question" id="payoff-question"></p>
         </div>
-        <span id="step-label">Step 1 of 5</span>
-      </div>
-
-      <div class="progress" aria-hidden="true">
-        <span class="progress-fill" id="progress-fill"></span>
-      </div>
-
-      <section class="screen active" data-screen="decision">
-        <div class="screen-heading">
-          <span class="step-kicker">Your crossroads</span>
-          <h2>What decision is taking up space in your mind?</h2>
-          <p>Write it as a real choice. It does not need to sound polished.</p>
+        <div class="payoff-test">
+          <label>Test it before you live it</label>
+          <p id="payoff-test"></p>
         </div>
-        <label class="field-label" for="decision-input">The decision I am facing</label>
-        <textarea id="decision-input" rows="4" placeholder="I know I need to change, but where do I begin?"></textarea>
-        <div class="example-row">
-          <button class="chip" data-example="I was laid off. What now?">I was laid off. What now?</button>
-          <button class="chip" data-example="I’m graduating with no direction.">I’m graduating with no direction.</button>
-          <button class="chip" data-example="I know I need to change. But where do I begin?">I need to change. Where do I begin?</button>
-        </div>
-        <div class="screen-actions end">
-          <button class="button button-primary" id="decision-next">Continue</button>
-        </div>
-      </section>
-
-      <section class="screen" data-screen="priority">
-        <div class="screen-heading centered">
-          <span class="step-kicker">One quick question</span>
-          <h2>What matters most to you right now?</h2>
-          <p>There is no correct answer. Choose what feels most true in this moment.</p>
-        </div>
-        <div class="priority-grid">
-          <button class="priority-card" data-priority="Stability">
-            <strong>Stability</strong>
-            <span>Protect what I have</span>
-          </button>
-          <button class="priority-card" data-priority="Growth">
-            <strong>Growth</strong>
-            <span>Expand what is possible</span>
-          </button>
-          <button class="priority-card" data-priority="Freedom">
-            <strong>Freedom</strong>
-            <span>Gain more choice and autonomy</span>
-          </button>
-        </div>
-        <div class="screen-actions">
-          <button class="text-button" data-back="decision">← Back</button>
-        </div>
-      </section>
-
-      <section class="screen" data-screen="lives">
-        <div class="screen-heading">
-          <span class="step-kicker">Four possible directions</span>
-          <h2>Where could you go from here?</h2>
-          <p>See how your decision and priority shape four ways forward.</p>
-        </div>
-        <div class="decision-flow" aria-label="How your directions were shaped">
-          <div class="flow-node">
-            <span>Your decision</span>
-            <strong id="flow-decision"></strong>
-          </div>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <div class="flow-node priority">
-            <span>Your lens</span>
-            <strong id="flow-priority"></strong>
-          </div>
-          <span class="flow-arrow" aria-hidden="true">→</span>
-          <div class="flow-result">
-            <span>Four testable directions</span>
-            <small>Choose one. You are not choosing forever.</small>
-          </div>
-        </div>
-        <div class="direction-explorer">
-          <div class="direction-list" id="direction-list" aria-label="Possible directions"></div>
-          <article class="direction-detail" id="direction-detail" aria-live="polite"></article>
-        </div>
-        <div class="screen-actions">
-          <button class="text-button" data-back="priority">← Change what matters</button>
-        </div>
-      </section>
-
-      <section class="screen" data-screen="experiment">
-        <div class="experiment-layout">
-          <div>
-            <span class="step-kicker">Your 7-day experiment</span>
-            <h2 id="experiment-title">Test the path in real life</h2>
-            <p id="experiment-intro"></p>
-          </div>
-          <div class="lens-pill" id="lens-pill"></div>
-        </div>
-        <div class="experiment-card">
-          <span class="card-label">Do this within seven days</span>
-          <h3 id="experiment-action"></h3>
-          <div class="experiment-meta">
-            <div><span>Time</span><strong>30–60 min</strong></div>
-            <div><span>Cost</span><strong>Low</strong></div>
-            <div><span>Risk</span><strong>Reversible</strong></div>
-          </div>
-          <div class="test-question">
-            <span>What this tests</span>
-            <p id="experiment-question"></p>
-          </div>
-        </div>
-        <div class="log-preview">
-          <div>
-            <span class="card-label">After the experiment, record</span>
-            <h3>One action · One thought · One feeling</h3>
-          </div>
-          <div class="log-fields">
-            <span>I did...</span>
-            <span>I noticed...</span>
-            <span>I felt...</span>
-          </div>
-        </div>
-        <div class="screen-actions split">
-          <button class="text-button" data-back="lives">← Choose another life</button>
-          <button class="button button-primary" id="experiment-next">Preview my journey</button>
-        </div>
-      </section>
-
-      <section class="screen" data-screen="journey">
-        <div class="screen-heading">
-          <span class="step-kicker">Your ongoing journey</span>
-          <h2>Try. Notice. Adjust.</h2>
-          <p>You can return after each small step. The system helps you learn and choose what comes next.</p>
-        </div>
-        <div class="companion-flow" aria-label="How the system supports your journey">
-          <div class="companion-step complete">
-            <span>1</span>
-            <strong>Try</strong>
-            <small>One small experiment</small>
-          </div>
-          <span aria-hidden="true">→</span>
-          <div class="companion-step pending">
-            <span>2</span>
-            <strong>Reflect</strong>
-            <small>Action · thought · feeling</small>
-          </div>
-          <span aria-hidden="true">→</span>
-          <div class="companion-step">
-            <span>3</span>
-            <strong>Adjust</strong>
-            <small>Your next experiment</small>
-          </div>
-        </div>
-        <div class="journey-grid">
-          <article class="review-card">
-            <span class="card-label">Before you begin</span>
-            <h3>What to notice</h3>
-            <p id="review-copy"></p>
-            <div class="recommendation">
-              <span>Next step</span>
-              <strong>Run the experiment, then record what happened</strong>
-            </div>
-          </article>
-          <article class="timeline-card">
-            <span class="card-label">Your journey</span>
-            <div class="timeline-item complete">
-              <span>1</span>
-              <div><strong>Direction chosen</strong><small id="timeline-direction"></small></div>
-            </div>
-            <div class="timeline-item pending">
-              <span>2</span>
-              <div><strong>First experiment</strong><small id="timeline-experiment">Ready to try in the real world</small></div>
-            </div>
-            <div class="timeline-item locked">
-              <span>3</span>
-              <div><strong>Agent review</strong><small>Available after you record action, thought, and feeling</small></div>
-            </div>
-          </article>
-        </div>
-        <div class="share-preview">
-          <div>
-            <span class="card-label">Optional</span>
-            <h3>Share for perspective</h3>
-            <p>Invite someone you trust into the journey.</p>
-          </div>
-          <button class="button button-secondary" id="share-demo">Preview share card</button>
-        </div>
-        <div class="screen-actions split">
-          <button class="text-button" data-start>Start another decision</button>
-          <button class="button button-primary" data-open-pilot>Explore my crossroads together</button>
-        </div>
-      </section>
-    </section>
-
-    <section class="how-it-works" aria-labelledby="how-title">
-      <div class="section-heading">
-        <span class="eyebrow">Why this is different</span>
-        <h2 id="how-title">Explore possible lives<br>Try one for real</h2>
-        <p>You do not need a perfect answer. You need a small way to learn.</p>
-      </div>
-      <div class="feature-journey">
-        <article class="feature-card feature-explore">
-          <div class="feature-topline"><span>01</span><small>Explore</small></div>
-          <div class="feature-visual branching-visual" aria-hidden="true">
-            <span class="visual-origin"></span>
-            <span class="visual-path path-one"></span>
-            <span class="visual-path path-two"></span>
-            <span class="visual-path path-three"></span>
-            <span class="visual-path path-four"></span>
-          </div>
-          <h3>See more than one future</h3>
-          <p>Turn one crossroads into four distinct, testable directions.</p>
-          <strong class="feature-output">You get: possible paths</strong>
-        </article>
-        <article class="feature-card feature-test">
-          <div class="feature-topline"><span>02</span><small>Test</small></div>
-          <div class="feature-visual experiment-visual" aria-hidden="true">
-            <span class="mini-label">7-day test</span>
-            <strong>One real task</strong>
-            <div><i></i><i></i><i></i></div>
-          </div>
-          <h3>Try before you decide</h3>
-          <p>Convert a direction into one low-risk action in the real world.</p>
-          <strong class="feature-output">You get: one experiment</strong>
-        </article>
-        <article class="feature-card feature-learn">
-          <div class="feature-topline"><span>03</span><small>Learn</small></div>
-          <div class="feature-visual evidence-visual" aria-hidden="true">
-            <span>I did</span><span>I noticed</span><span>I felt</span>
-          </div>
-          <h3>Learn from what happened</h3>
-          <p>Separate observation from assumption and adjust the next step.</p>
-          <strong class="feature-output">You get: clearer evidence</strong>
-        </article>
-        <article class="feature-card feature-share">
-          <div class="feature-topline"><span>04</span><small>Share</small></div>
-          <div class="feature-visual people-visual" aria-hidden="true">
-            <span></span><span></span><span></span>
-            <i></i><i></i>
-          </div>
-          <h3>Invite perspective</h3>
-          <p>Share only what helps, with someone you trust or who understands.</p>
-          <strong class="feature-output">You choose: private or shared</strong>
-        </article>
-      </div>
-      <div class="feature-summary">
-        <span>Imagine</span><i>→</i><span>Try</span><i>→</i><span>Learn</span><i>→</i><span>Adjust</span>
       </div>
     </section>
 
-    <section class="pilot-cta">
-      <div class="pilot-copy">
-        <span class="eyebrow">Perspective from people who get it</span>
-        <h2>Some choices feel lighter when you do not carry them alone</h2>
-        <p>Meet people exploring similar questions. Share an experiment, ask what they learned, or simply listen.</p>
-        <button class="button button-primary" data-open-pilot>Find people at a similar crossroads</button>
-        <small>You choose what to share. Your journey stays yours.</small>
-      </div>
-      <div class="peer-board" aria-hidden="true">
-        <div class="peer-orbit">
-          <span class="peer-avatar peer-one">M</span>
-          <span class="peer-avatar peer-two">J</span>
-          <span class="peer-avatar peer-three">A</span>
-          <span class="peer-avatar peer-you">You</span>
-          <i class="peer-line line-one"></i>
-          <i class="peer-line line-two"></i>
-          <i class="peer-line line-three"></i>
-        </div>
-        <div class="peer-note note-one">
-          <span>Changing careers</span>
-          <p>“I tested the daily work before changing the title.”</p>
-        </div>
-        <div class="peer-note note-two">
-          <span>Moving home</span>
-          <p>“One ordinary week told me more than another pros-and-cons list.”</p>
-        </div>
-        <div class="peer-note note-three">
-          <span>Starting over</span>
-          <p>“I did not need certainty. I needed one honest next step.”</p>
+    <section class="fork-scroll" id="fork">
+      <div class="fork-sticky">
+        <canvas id="beam-canvas" aria-hidden="true"></canvas>
+        <div id="branch-labels"></div>
+        <div class="fork-copy">
+          <span class="mono">From possibility to evidence</span>
+          <h2>Four imagined lives.<br>Four different uncertainties.</h2>
+          <p>Do not choose from the fantasy. Find the part reality can answer.</p>
         </div>
       </div>
+    </section>
+
+    <section class="evidence">
+      <span class="mono">The missing evidence</span>
+      <h2>See your possible futures,<br>then turn one into small experiments.</h2>
+      <div class="evidence-question" id="evidence-question"></div>
+      <p>My Parallel Life does not predict the right outcome. It finds the uncertainty most worth testing before you choose.</p>
+    </section>
+
+    <section class="reality">
+      <header class="reality-head reveal">
+        <span class="mono">From possibility to reality</span>
+        <h2>You cannot predict a future.<br>You can sample one.</h2>
+        <p>One experiment will not make the decision for you. It will replace some imagination with evidence.</p>
+      </header>
+      <article class="experiment-card reveal">
+        <div class="experiment-head">
+          <span id="experiment-route">Reality test · Direction 02</span>
+          <span>7 DAYS</span>
+        </div>
+        <div class="experiment-body">
+          <div class="exp-row"><label>Core hypothesis</label><p id="experiment-hypothesis"></p></div>
+          <div class="exp-row"><label>7-day action</label><p id="experiment-action"></p></div>
+          <div class="signal"><label>Signal to notice</label><p id="experiment-signal"></p></div>
+        </div>
+        <div class="experiment-meta">
+          <div class="meta"><strong id="experiment-cost">Near zero</strong><span>Cost</span></div>
+          <div class="meta"><strong id="experiment-risk">Low</strong><span>Exit difficulty</span></div>
+          <div class="meta"><strong>7 days</strong><span>Time</span></div>
+        </div>
+      </article>
+      <p class="experiment-note">Start with one real question. Let reality shape what comes next.</p>
+    </section>
+
+    <section class="cta" id="pilot">
+      <h2>What four directions<br>are hiding inside your crossroads?</h2>
+      <p>Get early access and turn the decision circling in your mind into paths you can compare and a next step you can test.</p>
+      <form class="pilot-form" id="pilot-form">
+        <input type="email" aria-label="Your email" placeholder="Your email" required>
+        <button type="submit">Get early access</button>
+      </form>
+      <p class="pilot-note">Limited private pilot</p>
+      <div class="success" id="success">You are on the list. We will reach out when early access opens.</div>
     </section>
   </main>
 
-  <dialog id="pilot-dialog">
-    <form id="pilot-form" action="https://formspree.io/f/xkoavnnq" method="POST">
-      <button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button>
-      <span class="eyebrow">Meet others at a crossroads</span>
-      <h2>Explore life decisions with people like you</h2>
-      <p>Tell us only what you are comfortable sharing.</p>
-      <label>What I’d like to be called
-        <input type="text" name="name" required autocomplete="name" placeholder="Name or nickname">
-      </label>
-      <label>Email
-        <input type="email" name="email" required autocomplete="email" placeholder="you@example.com">
-      </label>
-      <label>The decision you are facing
-        <textarea class="contact-decision" name="decision" rows="2" required placeholder="I am struggling to decide whether..."></textarea>
-      </label>
-      <fieldset class="interest-fieldset">
-        <legend>What parts of life does this touch?</legend>
-        <span class="field-help">Choose as many as fit.</span>
-        <div class="interest-grid">
-          <label class="interest-card"><input type="checkbox" name="areas" value="Career Growth"><span>Career Growth</span></label>
-          <label class="interest-card"><input type="checkbox" name="areas" value="Financial Security"><span>Financial Security</span></label>
-          <label class="interest-card"><input type="checkbox" name="areas" value="Freedom"><span>Freedom</span></label>
-          <label class="interest-card"><input type="checkbox" name="areas" value="Relationships"><span>Relationships</span></label>
-          <label class="interest-card"><input type="checkbox" name="areas" value="Health"><span>Health</span></label>
-          <label class="interest-card"><input type="checkbox" name="areas" value="Adventure"><span>Adventure</span></label>
-        </div>
-      </fieldset>
-      <button class="button button-primary full" type="submit">Explore my crossroads together</button>
-      <div class="form-success" id="form-success" hidden>
-        Thanks — your note is on its way. We’ll be in touch.
+  <div class="access-modal" id="access-modal" aria-hidden="true">
+    <section class="access-dialog" role="dialog" aria-modal="true" aria-labelledby="access-title">
+      <button class="modal-close" type="button" aria-label="Close early access form">&times;</button>
+      <div id="access-form-view">
+        <p class="modal-kicker">Meet others at a crossroads</p>
+        <h2 id="access-title">Explore life decisions with people like you</h2>
+        <p class="modal-intro">Tell us only what you are comfortable sharing.</p>
+        <form class="access-form" id="access-form">
+          <div class="field">
+            <label for="access-name">What I’d like to be called</label>
+            <input id="access-name" name="name" type="text" placeholder="Name or nickname">
+          </div>
+          <div class="field">
+            <label for="access-email">Email</label>
+            <input id="access-email" name="email" type="email" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label for="access-decision">The decision you are facing</label>
+            <textarea id="access-decision" name="decision" placeholder="I’m graduating with no direction."></textarea>
+          </div>
+          <fieldset class="life-areas">
+            <legend>What parts of life does this touch?</legend>
+            <p class="areas-help">Choose as many as fit.</p>
+            <div class="area-grid">
+              <label class="area-option"><input type="checkbox" name="areas" value="Career Growth"><span>Career Growth</span></label>
+              <label class="area-option"><input type="checkbox" name="areas" value="Financial Security"><span>Financial Security</span></label>
+              <label class="area-option"><input type="checkbox" name="areas" value="Freedom"><span>Freedom</span></label>
+              <label class="area-option"><input type="checkbox" name="areas" value="Relationships"><span>Relationships</span></label>
+              <label class="area-option"><input type="checkbox" name="areas" value="Health"><span>Health</span></label>
+              <label class="area-option"><input type="checkbox" name="areas" value="Adventure"><span>Adventure</span></label>
+            </div>
+          </fieldset>
+          <button class="modal-submit" type="submit">Explore my crossroads together</button>
+        </form>
       </div>
-      <div class="form-error" id="form-error" hidden>
-        Something went wrong. Please try again.
+      <div class="modal-success" id="modal-success" role="status">
+        <h3>Your crossroads is on the map.</h3>
+        <p>We’ll reach out when your early access is ready.</p>
       </div>
-    </form>
-  </dialog>
-
-  <dialog id="share-dialog">
-    <div class="share-card">
-      <button class="dialog-close" type="button" data-close-share aria-label="Close">×</button>
-      <span class="card-label">My Parallel Life Experiment</span>
-      <h2 id="share-title"></h2>
-      <p id="share-decision"></p>
-      <div><strong>What I tested</strong><p id="share-action"></p></div>
-      <div><strong>What I want from sharing</strong><p>Perspective from someone who has tried a similar path.</p></div>
-    </div>
-  </dialog>
-
-  <footer>
-    <button class="footer-contact" type="button" data-open-pilot>My Parallel Lives · Contact</button>
-    <span>Private by default. Built for learning, not prediction.</span>
-  </footer>
+    </section>
+  </div>
 
   <script>
-    const analyticsParams = new URLSearchParams(window.location.search);
-    if (analyticsParams.get("analytics") === "off") {
-      localStorage.setItem("my-parallel-lives-analytics", "off");
+    const scenarios = [
+      {
+        label:"Career change",title:"Stay in a stable job, or try working independently?",fear:"Do I want freedom, or do I just want to escape?",
+        directions:[
+          ["Deepen the current path","Take on one real task closer to the role you want","Is the problem this environment, or the work itself?","Stable income, compounding experience, and stronger leverage","Slower change while other possibilities remain untested"],
+          ["Test independent work","Complete one real quote and delivery","Do I like the daily reality of independent work, or only the idea of freedom?","Direct evidence about your autonomy and new income possibilities","Uneven income and the ongoing pressure to drive yourself"],
+          ["Build a transition","Use your current job to support one test of a new direction","Do I need a complete reinvention, or a partial change first?","A safety net while you gather evidence and resources","A longer, less tidy period of divided attention"],
+          ["Redefine the need","Track what you genuinely do not want to repeat for one week","Do I want to change the work, the environment, or an overfilled life?","A clearer need and less risk of solving the wrong problem","The answer may be less simple than you hoped"]
+        ]
+      },
+      {
+        label:"Graduating",title:"I am graduating with no clear direction.",fear:"Which path is actually mine?",
+        directions:[
+          ["Follow your strongest skill","Complete one realistic work sample","Is what I am good at also worth years of investment?","Faster credibility and visible proof of ability","Mistaking competence for genuine desire"],
+          ["Track what gives energy","Compare your energy after three different tasks","What kind of ordinary day would make me want to keep improving?","A source of motivation beyond skill alone","It may not map neatly to a job title yet"],
+          ["Choose stability first","Compare five entry roles using the same scorecard","Can stability create room to explore instead of ending exploration?","Income, structure, and a gentler transition into working life","Momentum may quietly postpone the deeper question"],
+          ["Take a structured gap","Design one week of exploration with a concrete output","Do I need more experience, or am I delaying the choice?","Broader exposure and room for self-directed discovery","It requires discipline, budget, and clear boundaries"]
+        ]
+      },
+      {
+        label:"Laid off",title:"I was laid off. Where do I go from here?",fear:"Should I recover quickly, or use this moment to begin again?",
+        directions:[
+          ["Return to a familiar field","Compare five real roles with one scorecard","Do I need different work, or a healthier environment?","The fastest route back to income and continuity","Familiarity may hide the problem you actually need to solve"],
+          ["Move into a new industry","Complete one real task from the target field","Can my strongest skills transfer somewhere that fits better?","New room to grow and a different professional identity","A short-term drop in salary and fluency"],
+          ["Recover before choosing","Protect one week from job-search pressure","Is this decision coming from judgment, or exhaustion?","Restored energy and a clearer state from which to decide","Some immediate opportunities may pass"],
+          ["Test something of your own","Offer one small service to a real person","Do I want to build a business, or regain a sense of control?","Direct market feedback and more autonomy","Uncertain income and many responsibilities at once"]
+        ]
+      },
+      {
+        label:"Starting over at 30",title:"I am 30. Is it too late to begin again?",fear:"Do I want change, or am I chasing someone else's timeline?",
+        directions:[
+          ["Deepen what you have","Turn one existing strength into a stronger public artifact","How much further can my existing experience take me?","Compounding skill, credibility, and a lower cost of change","The change may feel less dramatic"],
+          ["Return to a neglected path","Give it three protected hours this week","Is this desire still alive, or simply unfinished?","Contact with an interest you have suppressed for years","A direct encounter with the gap between desire and ability"],
+          ["Change your environment","Spend one ordinary workday in the place you imagine living","Do I need a new life, or do I simply need rest?","New relationships, rhythms, and perspective","Moving costs and a changed support system"],
+          ["Rewrite the timeline","Separate what you want from what merely feels late","Which deadlines are mine, and which belong to the social clock?","Less false urgency and more deliberate priorities","Letting go of some external approval"]
+        ]
+      },
+      {
+        label:"Moving away",title:"I want to move to another city, but I am afraid of losing stability.",fear:"Do I want that place, or a different version of myself?",
+        directions:[
+          ["Rebuild where you are","Change the most suffocating part of your current life first","Do I need to move, or do I need a different life structure?","Your relationships and resources remain intact at low cost","The city itself remains untested"],
+          ["Try an ordinary week there","Live and work in the target city for one normal week","Does this place fit daily life, or only travel?","High-quality evidence from ordinary routines","A short stay cannot reveal every long-term pressure"],
+          ["Build the conditions to move","Define minimums for income, housing, and support","Do I lack courage, or an executable plan?","A more controlled migration risk","Preparation delays the actual move"],
+          ["Increase mobility first","Test one week of remote or cross-city work","Do I need to leave permanently, or gain more choice?","Flexibility and access to more possible places","A prolonged sense of belonging fully nowhere"]
+        ]
+      },
+      {
+        label:"A relationship ending",title:"A relationship ended, and I do not know how to begin again.",fear:"Did I lose a person, or the life we built around each other?",
+        directions:[
+          ["Recover your own rhythm","Design one ordinary day around your preferences","What makes life feel like mine again?","Autonomy and a more stable daily rhythm","Facing the emotions that surface when things become quiet"],
+          ["Reconnect with others","Reach out to someone you have neglected","Do I miss romance, or support and connection?","A wider emotional support network","New connection cannot replace grieving"],
+          ["Recover a neglected part","Return to one activity that faded during the relationship","Which parts of me are beginning to return?","Identity, interest, and renewed vitality","Comparisons with the past may surface"],
+          ["Do not define the next chapter yet","Separate loneliness, grief, relief, and desire for seven days","Which feeling actually needs a response right now?","More accurate emotional evidence","No simple answer for a while"]
+        ]
+      }
+    ];
+    const routeColors=["#f28a18","#dbb234","#df6336","#bd5d57"];
+    const sceneMoments=["Work that feels like me","A relationship ending","Graduating with no direction","Turning 30","Being laid off","Knowing I need a change"];
+    const questionMoments=["“Am I already behind?”","“Do I want the work, or the identity?”","“Can I test this without quitting?”","“What am I afraid to lose?”","“What would I choose without the deadline?”","“Is it the environment, or the work itself?”"];
+    const futureSnapshots=[
+      [
+        "A year later, your role fits better and your income is steady. The question of independence has not disappeared.",
+        "A year later, you control more of your week. You also spend more time selling, chasing invoices, and creating structure.",
+        "A year later, you still have a salary and a small independent practice. Progress is slower, but the choice is no longer imaginary.",
+        "A year later, you changed less than expected: fewer draining responsibilities, firmer boundaries, and a clearer definition of success."
+      ],
+      [
+        "A year later, your portfolio proves what you can do. The path is credible, though you still wonder whether ability can sustain interest.",
+        "A year later, your direction is less tidy but more alive. You know which tasks give you energy, even if the title is still emerging.",
+        "A year later, you have income, colleagues, and structure. Exploration survives only where you deliberately protect it.",
+        "A year later, you have tried several real forms of work and ruled out two. The gap gave you evidence, but demanded discipline."
+      ],
+      [
+        "A year later, your income recovered quickly in a familiar field. The environment is healthier, while reinvention remains unanswered.",
+        "A year later, you are a beginner again. You earn less, learn faster, and feel more curious about the work.",
+        "A year later, your energy has returned and the next move feels chosen rather than urgent. Recovery cost time but changed the decision.",
+        "A year later, the project did not become a company, but it created clients, confidence, and opportunities you could not see before."
+      ],
+      [
+        "A year later, your strengths have compounded into a stronger role. Life is more secure, though not radically different.",
+        "A year later, the neglected path is part of your week again. It may not be a career, but it is no longer only a regret.",
+        "A year later, your surroundings and routines have changed. Novelty faded; the ordinary version of the new life is now visible.",
+        "A year later, fewer choices feel late. You stopped chasing one borrowed milestone and made room for a priority that is yours."
+      ],
+      [
+        "A year later, you stayed but rebuilt your routines and boundaries. Some of what you blamed on the city was the shape of your days.",
+        "A year later, you moved with fewer illusions. The city fits many parts of you, but ordinary life there still requires compromise.",
+        "A year later, the move is funded, planned, and less frightening. Preparation reduced risk, though it tested your patience.",
+        "A year later, you divide your time between places. Freedom increased, while belonging became more complicated."
+      ],
+      [
+        "A year later, your days feel like your own again. Stability returned through small routines rather than a dramatic new beginning.",
+        "A year later, your support system is wider. New connection did not erase grief, but it stopped isolation from defining the year.",
+        "A year later, an old interest is part of your identity again. You recovered something that existed before the relationship.",
+        "A year later, you still cannot summarize the ending neatly. You can distinguish loneliness from desire and grief from regret."
+      ]
+    ];
+    const heroSteps=[
+      ["Choose a direction","Find the one path worth testing first."],
+      ["Clarify the real question","What assumption are you actually trying to prove?"],
+      ["Start with 7 days","One small experiment. No commitment beyond this week."],
+      ["Track and adapt","A living plan that adjusts as you learn — not a roadmap locked in stone."]
+    ];
+    const demoScenarios=[
+      {
+        title:"I want work that feels more like me",fear:"Grow here or start over?",question:"What could I test before making a leap?",scenario:0,active:1,
+        directions:[
+          ["Redesign one part of my current role","Ask to replace one draining weekly task with a task closer to the work you want. Track energy and output for seven days."],
+          ["Borrow a task from the next role","Complete one real deliverable from the role you want, then ask the person doing that job for specific feedback."],
+          ["Test a new career before applying","Spend three hours completing a realistic task from the target field and score interest, ability, and willingness to repeat it."],
+          ["Build one public proof of ability","Publish a small case study, sample, or prototype that a hiring manager or client can actually evaluate."]
+        ]
+      },
+      {
+        title:"My relationship ended",fear:"Who am I on my own?",question:"What could I rediscover this week?",scenario:5,active:2,
+        directions:[
+          ["Rebuild one day around my own choices","Plan one ordinary day using only your preferred meals, pace, places, and routines. Notice what feels like yours again."],
+          ["Restore an activity that disappeared","Return to one hobby or ritual that faded during the relationship and schedule its next two sessions."],
+          ["Reconnect with two grounding people","Invite two trusted people to specific, low-pressure plans instead of waiting until you feel better."],
+          ["Separate grief from wanting them back","Keep a seven-day note with four columns: loneliness, grief, relief, and desire. Respond only to the feeling that repeats."]
+        ]
+      },
+      {
+        title:"I’m graduating with no direction",fear:"Which path is mine?",question:"What could I test before choosing?",scenario:1,active:1,
+        directions:[
+          ["Turn my strongest skill into a work sample","Choose one real job description and complete a two-hour sample task that demonstrates its most important skill."],
+          ["Compare energy across three kinds of work","Try one analytical, one people-facing, and one creative task. Record focus, resistance, and desire to continue."],
+          ["Score five entry roles by the same criteria","Compare salary, learning, daily tasks, mentorship, and location so prestige does not make the decision for you."],
+          ["Run a structured exploration week","Book two informational interviews, shadow one workday, and finish one concrete output before considering a gap."]
+        ]
+      },
+      {
+        title:"I’m turning 30",fear:"Am I already behind?",question:"What is small enough to test today?",scenario:3,active:1,
+        directions:[
+          ["Test how far my current strengths can go","Create one stronger version of an existing project and ask three people what opportunity it makes them imagine for you."],
+          ["Give a postponed dream two protected hours","Put two hours on the calendar, produce one visible artifact, and decide whether you want the next session."],
+          ["Live one ordinary day in the environment I imagine","Work, commute, shop, and spend an evening there. Test daily life, not the fantasy of moving."],
+          ["Audit which deadlines are actually mine","List every milestone that feels late, name who set it, and remove one goal you do not genuinely want."]
+        ]
+      },
+      {
+        title:"I was laid off",fear:"What now?",question:"What could I test before choosing my next role?",scenario:2,active:1,
+        directions:[
+          ["Compare five familiar roles before applying","Use one scorecard for manager quality, daily work, salary, growth, and stability. Apply only to the top two patterns."],
+          ["Complete one real task from a new industry","Use a public brief or volunteer problem, finish a small deliverable, and ask an insider whether it meets the field’s standard."],
+          ["Run a recovery week with boundaries","Limit job search to two focused hours a day and track sleep, concentration, and urgency before making a major pivot."],
+          ["Offer one small paid service","Define a one-week service, send it to five relevant people, and learn whether anyone will pay before building a business."]
+        ]
+      },
+      {
+        title:"I know I need to change",fear:"But where do I begin?",question:"What is small enough to test today?",scenario:4,active:2,
+        directions:[
+          ["Recover five hours from my current week","Track seven days, remove one low-value obligation, and deliberately spend the recovered time on what you say matters."],
+          ["Try one task from a different kind of work","Complete a realistic task from another role and compare your energy before, during, and after it."],
+          ["Test one ordinary day somewhere else","Work, commute, eat, and handle errands in the place you imagine living before discussing a move."],
+          ["Choose one priority to protect for 30 days","Name what gets a guaranteed weekly block and write the three things that must temporarily receive less attention."]
+        ]
+      }
+    ];
+    const demoChoices=[
+      {
+        label:"A different kind of work",
+        title:"You are ready to test the work itself.",
+        copy:"Not the title or the fantasy — the ordinary tasks that would fill your week."
+      },
+      {
+        label:"A more stable path",
+        title:"You are ready to test what stability changes.",
+        copy:"Whether more structure creates room to think, or simply makes the deeper question quieter."
+      },
+      {
+        label:"More freedom in daily life",
+        title:"You are ready to test a different rhythm.",
+        copy:"How your energy changes when you have more control over time, place, and pace."
+      },
+      {
+        label:"Something of my own",
+        title:"You are ready to test whether an idea survives contact with reality.",
+        copy:"One small offer, project, or artifact can reveal more than months of imagining."
+      }
+    ];
+    const communities=[
+      {
+        label:"Career change",size:132,color:"#f28a18",members:"12,480 people · 326 active experiments this week",
+        posts:[
+          ["WEEK 2 CHECK-IN","I tested one product task after work. The research energized me; polishing the deck did not."],
+          ["PLAN ADAPTED","My three-call goal became one conversation after childcare changed this week."],
+          ["DECISION LOG","I am no longer asking whether to quit. I am testing which work I want more of."]
+        ]
+      },
+      {
+        label:"Starting over at 30",size:148,color:"#dbb234",members:"8,920 people · 214 active experiments this week",
+        posts:[
+          ["MILESTONE","I gave the postponed project two protected hours and wanted another session."],
+          ["HONEST PAUSE","I missed four days. The system helped me shrink the goal instead of abandoning it."],
+          ["TURNING POINT","The deadline was borrowed. The desire was real, but it did not need to become a career."]
+        ]
+      },
+      {
+        label:"Recovering from burnout",size:156,color:"#df6336",members:"15,360 people · 489 active experiments this week",
+        posts:[
+          ["PRIVATE CHECK-IN","My energy dropped three days in a row, so next week now has one task instead of four."],
+          ["COMMUNITY NOTE","Rest stopped feeling like failure when I saw other plans adapt without disappearing."],
+          ["PROGRESS","Two weeks of consistent sleep changed the decision I thought I needed to make."]
+        ]
+      },
+      {
+        label:"Relationship ending",size:136,color:"#bd5d57",members:"10,140 people · 271 active experiments this week",
+        posts:[
+          ["DAY 11","I rebuilt one Saturday around my choices. It was quiet, but it felt like mine."],
+          ["PLAN ADAPTED","The social goal was too much. It changed from three plans to one text message."],
+          ["DECISION LOG","I stopped treating loneliness as evidence that the relationship should return."]
+        ]
+      },
+      {
+        label:"Graduating",size:116,color:"#d49b50",members:"18,770 people · 602 active experiments this week",
+        posts:[
+          ["WORK SAMPLE","I tried three types of tasks. I liked the people-facing one more than the prestigious one."],
+          ["QUESTION","How are you comparing first jobs without letting salary decide everything?"],
+          ["WEEKLY SIGNAL","My direction is still unclear, but two paths now feel much less imaginary."]
+        ]
+      },
+      {
+        label:"Moving somewhere new",size:142,color:"#c87a49",members:"7,680 people · 192 active experiments this week",
+        posts:[
+          ["ORDINARY DAY TEST","I worked, commuted, and bought groceries there. The commute changed the fantasy."],
+          ["BUDGET UPDATE","The move moved back six weeks after the housing estimate changed."],
+          ["DECISION LOG","I want mobility first. A permanent move may not be the actual goal."]
+        ]
+      },
+      {
+        label:"Building something",size:128,color:"#e6a94f",members:"11,230 people · 348 active experiments this week",
+        posts:[
+          ["FIRST SIGNAL","Five offers sent. One yes, two questions, and much clearer language."],
+          ["MISSED WEEK","The launch slipped. The system removed two features and protected the core test."],
+          ["PROGRESS","It is not a company yet. It is now evidence instead of a private idea."]
+        ]
+      }
+    ];
+    let scenarioIndex=1,routeIndex=1,heroRouteIndex=0,demoIndex=2,scenarioTimer,scenarioLocked=true;
+    const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+
+    function renderHero(){
+      document.querySelector("#hero-futures").innerHTML=heroSteps.map((step,i)=>`
+        <button class="future-chip ${i===heroRouteIndex?"is-active":""}" data-hero-route="${i}">
+          <strong><em>${String(i+1).padStart(2,"0")}</em>${esc(step[0])}</strong>
+          <span>${esc(step[1])}</span>
+        </button>`).join("");
+      document.querySelectorAll("[data-hero-route]").forEach(btn=>btn.addEventListener("click",()=>{
+        heroRouteIndex=Number(btn.dataset.heroRoute);routeIndex=heroRouteIndex;renderHero();
+      }));
+      if(document.querySelector("#branch-labels"))buildBranchLabels();
+      renderLives();
     }
-    if (analyticsParams.get("analytics") === "on") {
-      localStorage.removeItem("my-parallel-lives-analytics");
+    function selectScenario(index,manual=false){
+      scenarioIndex=(index+scenarios.length)%scenarios.length;heroRouteIndex=0;routeIndex=1;renderHero();
+      if(manual)restartScenarioTimer();
+    }
+    function restartScenarioTimer(){
+      clearInterval(scenarioTimer);
+      if(reduceMotion||scenarioLocked)return;
+      scenarioTimer=setInterval(()=>{
+        if(heroRouteIndex<3){heroRouteIndex++;renderHero()}
+        else{selectScenario(scenarioIndex+1)}
+      },2200);
     }
 
-    const analyticsDisabled =
-      localStorage.getItem("my-parallel-lives-analytics") === "off";
-    const isProduction = window.location.hostname === "gaofang86.github.io";
+    function buildMarquees(){
+      const make=(items,type)=>[...items,...items].map((text,i)=>`<button class="moment ${type}" data-moment="${i%items.length}">${esc(text)}</button>`).join("");
+      document.querySelector("#scene-marquee").innerHTML=make(sceneMoments,"scene");
+      document.querySelector("#question-marquee").innerHTML=make(questionMoments,"question");
+      document.querySelectorAll(".moment.scene").forEach((btn,i)=>btn.addEventListener("click",()=>{
+        openDemo(i%demoScenarios.length);
+      }));
+      document.querySelectorAll(".moment.question").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelector("#decision-text").value=btn.textContent.replace(/[“”]/g,"");
+        document.querySelector("#your-crossroads").scrollIntoView({behavior:reduceMotion?"auto":"smooth"});
+      }));
+    }
 
-    if (isProduction && !analyticsDisabled) {
-      !function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="Xi tn init mn Qr yn xn pn capture calculateEventProperties Tn register register_once register_for_session unregister unregister_for_session Pn getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync On identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty Mn Cn createPersonProfile setInternalOrTestUser Rn vn Fn opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Sn debug Kr En getPageViewId captureTraceFeedback captureTraceMetric hn".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-      posthog.init("phc_qKSXSzpj7jpPXoUMtfNfKKWs7fFcUFTLoGdwZ5hPhWrf", {
-        api_host: "https://us.i.posthog.com",
-        defaults: "2026-05-30",
-        autocapture: false,
-        capture_pageview: false,
-        capture_pageleave: false,
-        disable_session_recording: true,
-        person_profiles: "never"
+    function renderDemo(){
+      document.querySelector("#demo-options").innerHTML=demoChoices.map((choice,i)=>`
+        <button class="demo-choice" type="button" aria-pressed="false" data-demo-choice="${i}">${esc(choice.label)}</button>`).join("");
+      document.querySelectorAll("[data-demo-choice]").forEach(btn=>btn.addEventListener("click",()=>showDemoResponse(Number(btn.dataset.demoChoice),btn)));
+      document.querySelector("#demo-response").classList.remove("is-visible");
+    }
+    function selectDemo(index){
+      demoIndex=(index+demoScenarios.length)%demoScenarios.length;
+      scenarioIndex=demoScenarios[demoIndex].scenario;
+      renderDemo();
+    }
+    function openDemo(index){
+      selectDemo(index);
+      const demo=document.querySelector("#scenario-demo");
+      demo.setAttribute("aria-hidden","false");
+      demo.scrollIntoView({behavior:reduceMotion?"auto":"smooth"});
+    }
+    function showDemoResponse(index,button){
+      const choice=demoChoices[index];
+      document.querySelectorAll("[data-demo-choice]").forEach(btn=>btn.setAttribute("aria-pressed",String(btn===button)));
+      document.querySelector("#demo-response-title").textContent=choice.title;
+      document.querySelector("#demo-response-copy").textContent=choice.copy;
+      document.querySelector("#demo-response").classList.add("is-visible");
+    }
+
+    function renderCommunity(index){
+      const community=communities[index];
+      document.querySelector("#community-title").textContent=community.label;
+      document.querySelector("#community-meta").textContent=community.members;
+      document.querySelector("#community-feed").innerHTML=community.posts.map(post=>`
+        <article class="feed-item"><small>${esc(post[0])}</small><p>${esc(post[1])}</p>
+          <div class="feed-actions"><span>♡ Support</span><span>↗ Share progress</span></div>
+        </article>`).join("");
+      document.querySelectorAll("[data-community]").forEach((bubble,i)=>bubble.setAttribute("aria-pressed",String(i===index)));
+    }
+
+    function buildBubbleWorld(){
+      const world=document.querySelector("#bubble-world");
+      world.innerHTML=communities.map((community,i)=>`
+        <button class="crossroad-bubble" type="button" data-community="${i}"
+          style="--bubble-color:${community.color};width:${community.size}px;height:${community.size}px">
+          ${esc(community.label)}
+        </button>`).join("");
+      const bubbles=[...world.querySelectorAll("[data-community]")];
+      bubbles.forEach((bubble,i)=>bubble.addEventListener("click",()=>renderCommunity(i)));
+      const bodies=bubbles.map((el,i)=>({
+        el,r:communities[i].size/2,
+        x:30+(i%3)*175+(i%2)*22,y:25+Math.floor(i/3)*170,
+        vx:(i%2?.32:-.3)+(i%3)*.04,vy:(i%3?.25:-.28)
+      }));
+      function animateBubbles(){
+        const width=world.clientWidth,height=world.clientHeight;
+        bodies.forEach(body=>{
+          body.x+=body.vx;body.y+=body.vy;
+          if(body.x<=0||body.x+body.r*2>=width){body.vx*=-1;body.x=Math.max(0,Math.min(width-body.r*2,body.x))}
+          if(body.y<=0||body.y+body.r*2>=height){body.vy*=-1;body.y=Math.max(0,Math.min(height-body.r*2,body.y))}
+        });
+        for(let i=0;i<bodies.length;i++)for(let j=i+1;j<bodies.length;j++){
+          const a=bodies[i],b=bodies[j],dx=(b.x+b.r)-(a.x+a.r),dy=(b.y+b.r)-(a.y+a.r);
+          const distance=Math.hypot(dx,dy),minimum=a.r+b.r;
+          if(distance&&distance<minimum){
+            const nx=dx/distance,ny=dy/distance,overlap=(minimum-distance)/2;
+            a.x-=nx*overlap;a.y-=ny*overlap;b.x+=nx*overlap;b.y+=ny*overlap;
+            const av=a.vx*nx+a.vy*ny,bv=b.vx*nx+b.vy*ny;
+            a.vx+=(bv-av)*nx;a.vy+=(bv-av)*ny;b.vx+=(av-bv)*nx;b.vy+=(av-bv)*ny;
+          }
+        }
+        bodies.forEach(body=>body.el.style.transform=`translate(${body.x}px,${body.y}px)`);
+        requestAnimationFrame(animateBubbles);
+      }
+      if(reduceMotion)bodies.forEach(body=>body.el.style.transform=`translate(${body.x}px,${body.y}px)`);
+      else requestAnimationFrame(animateBubbles);
+      renderCommunity(0);
+    }
+
+    function setupPlanSimulation(){
+      let missed=false;
+      document.querySelector("#simulate-miss").addEventListener("click",event=>{
+        missed=!missed;
+        document.querySelector("#plan-probability").textContent=missed?"54%":"72%";
+        document.querySelector("#probability-fill").style.width=missed?"54%":"72%";
+        document.querySelector("#adjustment-title").textContent=missed?"The original plan no longer fits this week.":"Your plan is still on track.";
+        document.querySelector("#adjustment-copy").textContent=missed
+          ?"You missed the 90-minute task. Instead of marking the week failed, the system reduced the next action and moved feedback to Monday."
+          :"You completed the setup step. The next action stays small enough to fit inside this week.";
+        document.querySelector("#adjustment-action").textContent=missed?"Plan changed:":"Next adjustment:";
+        document.querySelector("#adjustment-action").nextSibling.textContent=missed
+          ?" Complete a 25-minute rough attempt tomorrow. If probability falls below 40%, reconsider the milestone."
+          :" Keep the 90-minute task scheduled for Thursday.";
+        event.currentTarget.textContent=missed?"Restore original week":"Simulate a missed day";
       });
     }
+
+    function buildDecisionPrompts(){
+      const prompts=["I was laid off. What now?","I’m graduating with no direction.","I need to change. Where do I begin?","My relationship ended.","I’m turning 30."];
+      const destinations=[4,2,5,1,3];
+      document.querySelector("#decision-prompts").innerHTML=prompts.map((prompt,i)=>`
+        <button class="decision-prompt" type="button" data-prompt="${i}">${esc(prompt)}</button>`).join("");
+      document.querySelectorAll("[data-prompt]").forEach(btn=>btn.addEventListener("click",()=>{
+        document.querySelector("#decision-text").value=btn.textContent;
+        openDemo(destinations[Number(btn.dataset.prompt)]);
+      }));
+    }
+
+    function renderLives(){
+      const scenario=scenarios[scenarioIndex],route=scenario.directions[routeIndex];
+      document.querySelector("#lives-crossroads").textContent=scenario.title;
+      document.querySelector("#life-grid").innerHTML=scenario.directions.map((d,i)=>`
+        <button class="life-card" role="tab" aria-selected="${i===routeIndex}" data-life="${i}">
+          <span class="life-number">Life ${String(i+1).padStart(2,"0")}</span>
+          <h3>${esc(d[0])}</h3>
+          <span class="life-time">12 months later</span>
+          <p class="life-snapshot">${esc(futureSnapshots[scenarioIndex][i])}</p>
+          <div class="life-balance">
+            <div><label>What it gives</label><p>${esc(d[3])}</p></div>
+            <div><label>What it costs</label><p>${esc(d[4])}</p></div>
+          </div>
+          <span class="life-open">${i===routeIndex?"Selected":"Explore this life"} →</span>
+        </button>`).join("");
+      document.querySelectorAll("[data-life]").forEach(btn=>btn.addEventListener("click",()=>{
+        routeIndex=Number(btn.dataset.life);heroRouteIndex=routeIndex;renderLives();renderHero();
+      }));
+      document.querySelector("#payoff-question").textContent=route[2];
+      document.querySelector("#payoff-test").textContent=route[1];
+      document.querySelector("#evidence-question").textContent=route[2];
+      document.querySelector("#experiment-route").textContent=`Reality test · Direction ${String(routeIndex+1).padStart(2,"0")}`;
+      document.querySelector("#experiment-hypothesis").textContent=route[2];
+      document.querySelector("#experiment-action").textContent=route[1]+". Record the most honest resistance and energy changes from beginning to end.";
+      document.querySelector("#experiment-signal").textContent="Afterward, ask: would I willingly repeat the most ordinary and tedious part of this direction?";
+    }
+
+    const heroElement=document.querySelector(".hero");
+    const heroWorld=document.querySelector("#hero-world");
+    const heroDust=document.querySelector("#hero-dust");
+    for(let i=0;i<46;i++){
+      const particle=document.createElement("i");
+      particle.className="hero-particle";
+      particle.style.setProperty("--x",`${48+Math.random()*49}%`);
+      particle.style.setProperty("--y",`${9+Math.random()*82}%`);
+      particle.style.setProperty("--s",`${.6+Math.random()*2.1}px`);
+      particle.style.setProperty("--o",`${.18+Math.random()*.55}`);
+      particle.style.setProperty("--d",`${2.8+Math.random()*5}s`);
+      particle.style.setProperty("--dx",`${-8+Math.random()*16}px`);
+      particle.style.setProperty("--dy",`${-12-Math.random()*18}px`);
+      heroDust.append(particle);
+    }
+    if(!reduceMotion){
+      heroElement.addEventListener("pointermove",event=>{
+        const x=(event.clientX/innerWidth-.5)*-7;
+        const y=(event.clientY/innerHeight-.5)*-5;
+        heroWorld.style.transform=`translate(${x}px,${y}px) scale(1.01)`;
+      });
+    }
+    document.querySelector("#hero-explore").addEventListener("click",()=>heroElement.classList.add("is-exploring"));
+
+    document.querySelectorAll("[data-scroll]").forEach(btn=>btn.addEventListener("click",()=>{
+      if(btn.dataset.scroll==="#lives"){scenarioLocked=true;clearInterval(scenarioTimer)}
+      document.querySelector(btn.dataset.scroll).scrollIntoView({behavior:reduceMotion?"auto":"smooth"});
+    }));
+    document.querySelector("#decision-form").addEventListener("submit",event=>{
+      event.preventDefault();
+      const decision=document.querySelector("#decision-text").value.trim().toLowerCase();
+      let destination=0;
+      if(/laid off|layoff|失业|裁员/.test(decision))destination=4;
+      else if(/graduat|毕业/.test(decision))destination=2;
+      else if(/relationship|breakup|ended|分手|关系/.test(decision))destination=1;
+      else if(/\b30\b|turning|三十/.test(decision))destination=3;
+      else if(/move|city|城市|搬|change|改变/.test(decision))destination=5;
+      openDemo(destination);
+    });
+    const accessModal=document.querySelector("#access-modal");
+    const accessDialog=accessModal.querySelector(".access-dialog");
+    const accessEmail=document.querySelector("#access-email");
+    let accessTrigger=null;
+    function openAccess(trigger,email=""){
+      accessTrigger=trigger;
+      if(email)accessEmail.value=email;
+      accessModal.classList.add("is-open");
+      accessModal.setAttribute("aria-hidden","false");
+      document.body.classList.add("modal-open");
+      setTimeout(()=>document.querySelector("#access-name").focus(),50);
+    }
+    function closeAccess(){
+      accessModal.classList.remove("is-open");
+      accessModal.setAttribute("aria-hidden","true");
+      document.body.classList.remove("modal-open");
+      accessTrigger?.focus();
+    }
+    document.querySelectorAll("[data-open-access]").forEach(btn=>btn.addEventListener("click",()=>openAccess(btn)));
+    accessModal.querySelector(".modal-close").addEventListener("click",closeAccess);
+    accessModal.addEventListener("click",event=>{if(event.target===accessModal)closeAccess()});
+    document.addEventListener("keydown",event=>{
+      if(event.key==="Escape"&&accessModal.classList.contains("is-open"))closeAccess();
+      if(event.key==="Tab"&&accessModal.classList.contains("is-open")){
+        const focusable=[...accessDialog.querySelectorAll("button,input,textarea")].filter(el=>!el.disabled&&el.offsetParent!==null);
+        const first=focusable[0],last=focusable.at(-1);
+        if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
+        else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
+      }
+    });
+    document.querySelector("#pilot-form").addEventListener("submit",e=>{
+      e.preventDefault();
+      const email=e.currentTarget.querySelector("input").value;
+      openAccess(e.currentTarget.querySelector("button"),email);
+    });
+    document.querySelector("#access-form").addEventListener("submit",e=>{
+      e.preventDefault();
+      document.querySelector("#access-form-view").style.display="none";
+      document.querySelector("#modal-success").style.display="block";
+    });
+
+    const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting)entry.target.classList.add("visible")}),{threshold:.12});
+    document.querySelectorAll(".reveal").forEach(el=>observer.observe(el));
+
+    /* Scroll-driven fork canvas */
+    const canvas=document.querySelector("#beam-canvas"),ctx=canvas.getContext("2d");
+    let width,height,time=0,progress=0;
+    function resizeCanvas(){width=canvas.width=canvas.offsetWidth*devicePixelRatio;height=canvas.height=canvas.offsetHeight*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);width=canvas.offsetWidth;height=canvas.offsetHeight}
+    const clamp=n=>Math.max(0,Math.min(1,n));
+    const ease=n=>1-Math.pow(1-clamp(n),3);
+    const branchConfig=[[-.27,"#f28a18"],[-.08,"#dbb234"],[.12,"#df6336"],[.29,"#bd5d57"]];
+    function curve(points,color,lineWidth,blur,alpha){
+      ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.lineCap="round";ctx.shadowColor=color;ctx.shadowBlur=blur;
+      ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
+      for(let i=1;i<points.length-1;i++){const mx=(points[i][0]+points[i+1][0])/2,my=(points[i][1]+points[i+1][1])/2;ctx.quadraticCurveTo(points[i][0],points[i][1],mx,my)}
+      ctx.lineTo(points.at(-1)[0],points.at(-1)[1]);ctx.stroke();ctx.restore();
+    }
+    function glow(x,y,r,color,alpha){
+      const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color.replace("1)",`${alpha})`));g.addColorStop(1,"transparent");ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
+    }
+    function draw(){
+      ctx.clearRect(0,0,width,height);time+=.012;
+      const fx=width*.47,fy=height*.42,pulse=.78+.22*Math.sin(time*1.5);
+      const bg=ctx.createRadialGradient(fx,fy,0,fx,fy,width*.55);bg.addColorStop(0,`rgba(242,138,24,${.12*(1-progress)})`);bg.addColorStop(1,"transparent");ctx.fillStyle=bg;ctx.fillRect(0,0,width,height);
+      curve([[-30,fy+8],[width*.16,fy-18],[width*.31,fy+11],[fx,fy]],"#f28a18",1.5,18,.8*pulse);
+      curve([[-30,fy+8],[width*.16,fy-18],[width*.31,fy+11],[fx,fy]],"#fff2c7",.45,5,.55*pulse);
+      const fp=ease((progress-.18)/.72);glow(fx,fy,76,"rgba(255,198,82,1)",fp*.48);
+      branchConfig.forEach((b,i)=>{
+        const local=ease((fp-i*.07)/(1-i*.07));if(local<=0)return;
+        const ex=fx+width*.47*local,ey=fy+height*b[0]*local;
+        curve([[fx,fy],[fx+width*.18*local,fy+height*b[0]*.18],[ex,ey]],b[1],1.45,16,.82*local);
+      });
+      requestAnimationFrame(draw);
+    }
+    function updateFork(){
+      const section=document.querySelector(".fork-scroll"),max=section.offsetHeight-innerHeight;
+      if(!scenarioLocked&&scrollY>=section.offsetTop-innerHeight*.65){scenarioLocked=true;clearInterval(scenarioTimer)}
+      progress=clamp((scrollY-section.offsetTop)/max);
+      document.querySelector(".fork-copy").style.opacity=String(1-clamp((progress-.58)/.3));
+      document.querySelectorAll(".branch-label").forEach((label,i)=>{
+        label.style.opacity=String(clamp((progress-.45-i*.05)/.18));
+      });
+    }
+    function buildBranchLabels(){
+      document.querySelector("#branch-labels").innerHTML=scenarios[scenarioIndex].directions.map((d,i)=>`<span class="branch-label" style="left:${i%2?76:68}%;top:${[17,34,53,72][i]}%;color:${routeColors[i]}">${esc(d[0])}</span>`).join("");
+    }
+    window.addEventListener("resize",resizeCanvas);window.addEventListener("scroll",updateFork,{passive:true});
+
+    renderHero();buildMarquees();renderDemo();buildDecisionPrompts();buildBubbleWorld();setupPlanSimulation();buildBranchLabels();restartScenarioTimer();resizeCanvas();updateFork();draw();
   </script>
-  <script src="app.js?v=20260610-8"></script>
 </body>
 </html>
